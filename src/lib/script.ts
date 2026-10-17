@@ -1,9 +1,11 @@
 import type { RecommendationItem } from '../types/scan'
 
 export interface ScriptValidation { ok: boolean; checks: { label: string; ok: boolean }[]; errors: string[] }
-const homePathPattern = /^(~|~\/[^\0]+|\/home\/[^\0]+)$/
 function isSafePath(path: string) {
-  return homePathPattern.test(path) && !path.includes('..') && !/[`$;|&<>*?\[\]{}]/.test(path)
+  if (!path || typeof path !== 'string') return false
+  if (path === '~' || path === '~/' || path.startsWith('/') || path.startsWith('\\')) return false
+  if (!path.startsWith('~/') || path.slice(2).trim().length === 0) return false
+  return !path.includes('..') && !/[`$;|&<>*?\[\]{}]/.test(path)
 }
 export function quotePath(path: string) {
   if (path.startsWith('~/')) {
@@ -18,7 +20,7 @@ export function quotePath(path: string) {
 
 export function validatePaths(items: RecommendationItem[]): ScriptValidation {
   const paths = items.flatMap(item => item.paths)
-  const insideHome = paths.every(isSafePath)
+  const insideHome = paths.length > 0 && paths.every(isSafePath)
   const quoted = paths.every(path => {
     const q = quotePath(path)
     return (q.startsWith("'") || q.startsWith('"$HOME"/')) && q.endsWith("'")
@@ -26,7 +28,7 @@ export function validatePaths(items: RecommendationItem[]): ScriptValidation {
   const noDanger = paths.every(path => !/[`$;|&<>*?\[\]{}]/.test(path))
   const unique = new Set(paths).size === paths.length
   const errors = [] as string[]
-  if (!insideHome) errors.push('One or more paths are outside the home folder.')
+  if (!insideHome) errors.push('Bare ~, ~/, and absolute paths are rejected; paths must be relative to ~/ with a subpath.')
   if (!quoted) errors.push('Every path must be quoted.')
   if (!noDanger) errors.push('Shell expansion characters are not allowed.')
   if (!unique) errors.push('Duplicate paths are not allowed.')
