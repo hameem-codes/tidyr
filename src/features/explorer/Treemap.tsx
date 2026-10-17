@@ -24,6 +24,33 @@ const darkCategoryColors: Record<string, string> = {
   'Home': '#365E53',
 }
 
+const highContrastColors: Record<string, string> = {
+  'Code projects': '#00875A',
+  'AI models': '#6554C0',
+  'Package caches': '#FF8B00',
+  'SDKs': '#00B8D9',
+  'Documents': '#36B37E',
+  'Home': '#00875A',
+}
+
+const monochromeDark: Record<string, string> = {
+  'Code projects': '#3A4441',
+  'AI models': '#4E5754',
+  'Package caches': '#626B68',
+  'SDKs': '#505956',
+  'Documents': '#2E3633',
+  'Home': '#3A4441',
+}
+
+const monochromeLight: Record<string, string> = {
+  'Code projects': '#A8B3AE',
+  'AI models': '#8B9691',
+  'Package caches': '#75807B',
+  'SDKs': '#99A39F',
+  'Documents': '#BCC7C2',
+  'Home': '#A8B3AE',
+}
+
 interface TreemapProps {
   nodes: FolderNode[]
   mode: ExplorerMode
@@ -42,7 +69,13 @@ interface HoveredTile {
 export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
   const [hovered, setHovered] = useState<HoveredTile | null>(null)
   const theme = useSettingsStore(s => s.resolvedTheme)
-  const categoryColors = theme === 'dark' ? darkCategoryColors : lightCategoryColors
+  const treemapColors = useSettingsStore(s => s.treemapColors)
+
+  const categoryColors = useMemo(() => {
+    if (treemapColors === 'high-contrast') return highContrastColors
+    if (treemapColors === 'monochrome') return theme === 'dark' ? monochromeDark : monochromeLight
+    return theme === 'dark' ? darkCategoryColors : lightCategoryColors
+  }, [treemapColors, theme])
 
   const rects = useMemo(() => squarify(nodes, 1000, 520), [nodes])
   const totalSize = useMemo(() => nodes.reduce((sum, n) => sum + n.size, 0), [nodes])
@@ -198,19 +231,19 @@ export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
         ) : (
           <>
             <span>
-              <i className="legend-dot" style={{ background: theme === 'dark' ? '#365E53' : '#2D4B42' }} aria-hidden="true" />
+              <i className="legend-dot" style={{ background: categoryColors['Code projects'] || '#365E53' }} aria-hidden="true" />
               Code
             </span>
             <span>
-              <i className="legend-dot" style={{ background: theme === 'dark' ? '#6E6B91' : '#68658A' }} aria-hidden="true" />
+              <i className="legend-dot" style={{ background: categoryColors['AI models'] || '#6E6B91' }} aria-hidden="true" />
               AI Models
             </span>
             <span>
-              <i className="legend-dot" style={{ background: theme === 'dark' ? '#BF8426' : '#B87A14' }} aria-hidden="true" />
+              <i className="legend-dot" style={{ background: categoryColors['Package caches'] || '#BF8426' }} aria-hidden="true" />
               Package Caches
             </span>
             <span>
-              <i className="legend-dot" style={{ background: theme === 'dark' ? '#427F8C' : '#3F7A85' }} aria-hidden="true" />
+              <i className="legend-dot" style={{ background: categoryColors['SDKs'] || '#427F8C' }} aria-hidden="true" />
               SDKs
             </span>
           </>

@@ -12,15 +12,19 @@ export function resolveTheme(theme: ThemeSetting): 'light' | 'dark' {
   return 'dark'
 }
 
+export type TreemapColorPalette = 'default' | 'high-contrast' | 'monochrome'
+
 interface SettingsState {
   theme: ThemeSetting
   resolvedTheme: 'light' | 'dark'
+  treemapColors: TreemapColorPalette
   scanFolder: string
   idleDays: number
   moveToTrash: boolean
   platform: Platform
   setTheme: (theme: ThemeSetting) => void
   syncResolvedTheme: () => void
+  setTreemapColors: (value: TreemapColorPalette) => void
   setScanFolder: (value: string) => void
   setIdleDays: (value: number) => void
   setMoveToTrash: (value: boolean) => void
@@ -59,11 +63,20 @@ const getInitialIdleDays = (): number => {
   return 90
 }
 
+const getInitialTreemapColors = (): TreemapColorPalette => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('tidyr-treemap-colors') as TreemapColorPalette
+    if (saved === 'default' || saved === 'high-contrast' || saved === 'monochrome') return saved
+  }
+  return 'default'
+}
+
 export const useSettingsStore = create<SettingsState>((set, get) => {
   const initialTheme = getInitialTheme()
   return {
     theme: initialTheme,
     resolvedTheme: resolveTheme(initialTheme),
+    treemapColors: getInitialTreemapColors(),
     scanFolder: '~',
     idleDays: getInitialIdleDays(),
     moveToTrash: false,
@@ -80,6 +93,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
       if (get().resolvedTheme !== nextResolved) {
         set({ resolvedTheme: nextResolved })
       }
+    },
+    setTreemapColors: treemapColors => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tidyr-treemap-colors', treemapColors)
+      }
+      set({ treemapColors })
     },
   setScanFolder: scanFolder => set({ scanFolder }),
   setIdleDays: idleDays => {

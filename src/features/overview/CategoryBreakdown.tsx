@@ -19,10 +19,40 @@ const darkColors: Record<string, string> = {
   'Documents': '#9AAEA4',
 }
 
+const highContrastColors: Record<string, string> = {
+  'Code projects': '#00875A',
+  'AI models': '#6554C0',
+  'Package caches': '#FF8B00',
+  'SDKs': '#00B8D9',
+  'Documents': '#36B37E',
+}
+
+const monochromeDark: Record<string, string> = {
+  'Code projects': '#5F756C',
+  'AI models': '#6E7D77',
+  'Package caches': '#85968F',
+  'SDKs': '#72837C',
+  'Documents': '#495751',
+}
+
+const monochromeLight: Record<string, string> = {
+  'Code projects': '#7C8E85',
+  'AI models': '#6B7A72',
+  'Package caches': '#5B6861',
+  'SDKs': '#707F77',
+  'Documents': '#9AA9A1',
+}
+
 export function CategoryBreakdown() {
   const tree = useScanStore(s => s.data!.tree)
   const theme = useSettingsStore(s => s.resolvedTheme)
-  const colors = theme === 'dark' ? darkColors : lightColors
+  const treemapColors = useSettingsStore(s => s.treemapColors)
+
+  const colors = useMemo(() => {
+    if (treemapColors === 'high-contrast') return highContrastColors
+    if (treemapColors === 'monochrome') return theme === 'dark' ? monochromeDark : monochromeLight
+    return theme === 'dark' ? darkColors : lightColors
+  }, [treemapColors, theme])
 
   const categories = useMemo(() => {
     const map = new Map<string, number>()

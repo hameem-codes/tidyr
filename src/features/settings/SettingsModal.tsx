@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Moon, Sun, Monitor, X, Shield, RefreshCw } from 'lucide-react'
-import { useSettingsStore } from '../../store/settingsStore'
+import { useSettingsStore, type TreemapColorPalette } from '../../store/settingsStore'
 import { useToastStore } from '../../store/toastStore'
 import { useDialogA11y } from '../../hooks/useDialogA11y'
 
@@ -29,6 +29,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     settings.setIdleDays(90)
     settings.setMoveToTrash(false)
     settings.setTheme('system')
+    settings.setTreemapColors('default')
     showToast('Preferences reset to default values')
   }
 
@@ -59,87 +60,108 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         </div>
 
         <div className="settings-body">
-          <label className="field">
-            <span>Default scan directory</span>
-            <input
-              type="text"
-              value={settings.scanFolder}
-              onChange={e => settings.setScanFolder(e.target.value)}
-              placeholder="~"
-            />
-            <small>Use ~ for user home folder root or specify an absolute directory path.</small>
-          </label>
+          <div className="settings-section">
+            <h3 className="settings-section-title">Scan & Cleanup</h3>
 
-          <label className="field">
-            <span>Idle project candidate threshold</span>
-            <select
-              value={settings.idleDays}
-              onChange={e => settings.setIdleDays(Number(e.target.value))}
-            >
-              <option value={14}>14 days since last git commit or build</option>
-              <option value={30}>30 days (Recommended)</option>
-              <option value={60}>60 days of inactivity</option>
-              <option value={90}>90 days of inactivity</option>
-            </select>
-            <small>Flags unbuilt node_modules and target folders in dormant repositories.</small>
-          </label>
+            <label className="field">
+              <span>Default scan directory</span>
+              <input
+                type="text"
+                value={settings.scanFolder}
+                onChange={e => settings.setScanFolder(e.target.value)}
+                placeholder="~"
+              />
+              <small>Use ~ for user home folder root or specify an absolute directory path.</small>
+            </label>
 
-          <div className="setting-line">
-            <div>
-              <strong>Move to Trash instead of immediate deletion</strong>
-              <small>Emits Finder delete on macOS or <code>gio trash</code> on Linux.</small>
+            <label className="field">
+              <span>Idle project candidate threshold</span>
+              <select
+                value={settings.idleDays}
+                onChange={e => settings.setIdleDays(Number(e.target.value))}
+              >
+                <option value={14}>14 days since last git commit or build</option>
+                <option value={30}>30 days</option>
+                <option value={60}>60 days of inactivity</option>
+                <option value={90}>90 days of inactivity (Recommended)</option>
+              </select>
+              <small>Flags unbuilt node_modules and target folders in dormant repositories.</small>
+            </label>
+
+            <div className="setting-line">
+              <div>
+                <strong>Move to Trash instead of immediate deletion</strong>
+                <small>Emits Finder delete on macOS or <code>gio trash</code> on Linux.</small>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.moveToTrash}
+                onChange={e => settings.setMoveToTrash(e.target.checked)}
+              />
             </div>
-            <input
-              type="checkbox"
-              checked={settings.moveToTrash}
-              onChange={e => settings.setMoveToTrash(e.target.checked)}
-            />
+
+            <label className="field">
+              <span>Operating system platform</span>
+              <select
+                value={settings.platform}
+                onChange={e => settings.setPlatform(e.target.value as 'darwin' | 'linux' | 'other')}
+              >
+                <option value="darwin">macOS (Finder trash via osascript)</option>
+                <option value="linux">Linux (gio trash)</option>
+                <option value="other">Other Unix (rm fallback)</option>
+              </select>
+              <small>Autodetected from browser. Sets appropriate native trash commands without CLI dependencies.</small>
+            </label>
           </div>
 
-          <label className="field">
-            <span>Operating system platform</span>
-            <select
-              value={settings.platform}
-              onChange={e => settings.setPlatform(e.target.value as 'darwin' | 'linux' | 'other')}
-            >
-              <option value="darwin">macOS (Finder trash via osascript)</option>
-              <option value="linux">Linux (gio trash)</option>
-              <option value="other">Other Unix (rm fallback)</option>
-            </select>
-            <small>Autodetected from browser. Sets appropriate native trash commands without CLI dependencies.</small>
-          </label>
+          <div className="settings-section">
+            <h3 className="settings-section-title">Appearance</h3>
 
-          <div className="theme-choice">
-            <div>
-              <strong>Interface theme</strong>
-              <small className="muted">Paper light mode or deep forest dark mode</small>
+            <div className="theme-choice">
+              <div>
+                <strong>Interface theme</strong>
+                <small className="muted">Paper light mode or deep forest dark mode</small>
+              </div>
+              <div className="theme-buttons">
+                <button
+                  type="button"
+                  className={settings.theme === 'light' ? 'selected' : ''}
+                  onClick={() => settings.setTheme('light')}
+                >
+                  <Sun size={15} />
+                  Light
+                </button>
+                <button
+                  type="button"
+                  className={settings.theme === 'dark' ? 'selected' : ''}
+                  onClick={() => settings.setTheme('dark')}
+                >
+                  <Moon size={15} />
+                  Dark
+                </button>
+                <button
+                  type="button"
+                  className={settings.theme === 'system' ? 'selected' : ''}
+                  onClick={() => settings.setTheme('system')}
+                >
+                  <Monitor size={15} />
+                  System
+                </button>
+              </div>
             </div>
-            <div className="theme-buttons">
-              <button
-                type="button"
-                className={settings.theme === 'light' ? 'selected' : ''}
-                onClick={() => settings.setTheme('light')}
+
+            <label className="field">
+              <span>Treemap colors</span>
+              <select
+                value={settings.treemapColors}
+                onChange={e => settings.setTreemapColors(e.target.value as TreemapColorPalette)}
               >
-                <Sun size={15} />
-                Light
-              </button>
-              <button
-                type="button"
-                className={settings.theme === 'dark' ? 'selected' : ''}
-                onClick={() => settings.setTheme('dark')}
-              >
-                <Moon size={15} />
-                Dark
-              </button>
-              <button
-                type="button"
-                className={settings.theme === 'system' ? 'selected' : ''}
-                onClick={() => settings.setTheme('system')}
-              >
-                <Monitor size={15} />
-                System
-              </button>
-            </div>
+                <option value="default">Default category palette</option>
+                <option value="high-contrast">High contrast</option>
+                <option value="monochrome">Monochrome slate</option>
+              </select>
+              <small>Choose visual palette for treemap tiles and category breakdown.</small>
+            </label>
           </div>
 
           <div className="about-block">
