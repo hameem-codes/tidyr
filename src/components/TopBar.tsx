@@ -6,7 +6,7 @@ import { useScanStore } from '../store/scanStore'
 import { formatRelativeTime } from '../lib/format'
 
 export function TopBar({ onSettings }: { onSettings: () => void }) {
-  const { theme, setTheme } = useSettingsStore()
+  const { theme, resolvedTheme, setTheme } = useSettingsStore()
   const data = useScanStore(s => s.data)
   const selectedCount = useSelectionStore(s => s.selectedIds.length)
 
@@ -39,11 +39,11 @@ export function TopBar({ onSettings }: { onSettings: () => void }) {
         <button
           type="button"
           className="icon-button"
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          aria-label={`Switch to ${resolvedTheme === 'light' ? 'dark' : 'light'} theme`}
+          title={`Theme: ${theme} (${resolvedTheme})`}
+          onClick={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}
         >
-          {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+          {resolvedTheme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
         </button>
 
         <button

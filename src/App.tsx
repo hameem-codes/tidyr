@@ -24,7 +24,8 @@ export default function App() {
   const load = useScanStore(s => s.load)
   const data = useScanStore(s => s.data)
   const syncDefaults = useSelectionStore(s => s.syncDefaults)
-  const theme = useSettingsStore(s => s.theme)
+  const resolvedTheme = useSettingsStore(s => s.resolvedTheme)
+  const syncResolvedTheme = useSettingsStore(s => s.syncResolvedTheme)
   const [settings, setSettings] = useState(false)
 
   useEffect(() => {
@@ -38,8 +39,16 @@ export default function App() {
   }, [data, syncDefaults])
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme
-  }, [theme])
+    document.documentElement.dataset.theme = resolvedTheme
+  }, [resolvedTheme])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = () => syncResolvedTheme()
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [syncResolvedTheme])
 
   return (
     <div className="app-shell">

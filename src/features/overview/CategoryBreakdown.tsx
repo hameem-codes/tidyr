@@ -21,7 +21,7 @@ const darkColors: Record<string, string> = {
 
 export function CategoryBreakdown() {
   const tree = useScanStore(s => s.data!.tree)
-  const theme = useSettingsStore(s => s.theme)
+  const theme = useSettingsStore(s => s.resolvedTheme)
   const colors = theme === 'dark' ? darkColors : lightColors
 
   const categories = useMemo(() => {

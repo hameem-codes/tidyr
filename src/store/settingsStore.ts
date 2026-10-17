@@ -1,25 +1,38 @@
 import { create } from 'zustand'
 import type { Platform } from '../lib/script'
 
+export type ThemeSetting = 'light' | 'dark' | 'system'
+
+export function resolveTheme(theme: ThemeSetting): 'light' | 'dark' {
+  if (theme === 'light') return 'light'
+  if (theme === 'dark') return 'dark'
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return 'dark'
+}
+
 interface SettingsState {
-  theme: 'light' | 'dark'
+  theme: ThemeSetting
+  resolvedTheme: 'light' | 'dark'
   scanFolder: string
   idleDays: number
   moveToTrash: boolean
   platform: Platform
-  setTheme: (theme: 'light' | 'dark') => void
+  setTheme: (theme: ThemeSetting) => void
+  syncResolvedTheme: () => void
   setScanFolder: (value: string) => void
   setIdleDays: (value: number) => void
   setMoveToTrash: (value: boolean) => void
   setPlatform: (value: Platform) => void
 }
 
-const getInitialTheme = (): 'light' | 'dark' => {
+const getInitialTheme = (): ThemeSetting => {
   if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('tidyr-theme')
-    if (saved === 'light' || saved === 'dark') return saved
+    const saved = localStorage.getItem('tidyr-theme') as ThemeSetting
+    if (saved === 'light' || saved === 'dark' || saved === 'system') return saved
   }
-  return 'dark'
+  return 'system'
 }
 
 const getDefaultPlatform = (): Platform => {
@@ -38,18 +51,28 @@ const getDefaultPlatform = (): Platform => {
   return 'darwin'
 }
 
-export const useSettingsStore = create<SettingsState>((set) => ({
-  theme: getInitialTheme(),
-  scanFolder: '~',
-  idleDays: 30,
-  moveToTrash: false,
-  platform: getDefaultPlatform(),
-  setTheme: theme => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('tidyr-theme', theme)
-    }
-    set({ theme })
-  },
+export const useSettingsStore = create<SettingsState>((set, get) => {
+  const initialTheme = getInitialTheme()
+  return {
+    theme: initialTheme,
+    resolvedTheme: resolveTheme(initialTheme),
+    scanFolder: '~',
+    idleDays: 30,
+    moveToTrash: false,
+    platform: getDefaultPlatform(),
+    setTheme: theme => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tidyr-theme', theme)
+      }
+      set({ theme, resolvedTheme: resolveTheme(theme) })
+    },
+    syncResolvedTheme: () => {
+      const current = get().theme
+      const nextResolved = resolveTheme(current)
+      if (get().resolvedTheme !== nextResolved) {
+        set({ resolvedTheme: nextResolved })
+      }
+    },
   setScanFolder: scanFolder => set({ scanFolder }),
   setIdleDays: idleDays => set({ idleDays }),
   setMoveToTrash: moveToTrash => set({ moveToTrash }),
@@ -59,5 +82,6 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     }
     set({ platform })
   },
-}))
+}
+})
 

@@ -41,7 +41,7 @@ interface HoveredTile {
 
 export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
   const [hovered, setHovered] = useState<HoveredTile | null>(null)
-  const theme = useSettingsStore(s => s.theme)
+  const theme = useSettingsStore(s => s.resolvedTheme)
   const categoryColors = theme === 'dark' ? darkCategoryColors : lightCategoryColors
 
   const rects = useMemo(() => squarify(nodes, 1000, 520), [nodes])

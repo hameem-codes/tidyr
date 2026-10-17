@@ -1,4 +1,4 @@
-import { Moon, Sun, X, Shield, RefreshCw } from 'lucide-react'
+import { Moon, Sun, Monitor, X, Shield, RefreshCw } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useToastStore } from '../../store/toastStore'
 
@@ -14,7 +14,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     settings.setScanFolder('~')
     settings.setIdleDays(30)
     settings.setMoveToTrash(false)
-    settings.setTheme('light')
+    settings.setTheme('system')
     showToast('Preferences reset to default values')
   }
 
@@ -113,6 +113,14 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               >
                 <Moon size={15} />
                 Dark
+              </button>
+              <button
+                type="button"
+                className={settings.theme === 'system' ? 'selected' : ''}
+                onClick={() => settings.setTheme('system')}
+              >
+                <Monitor size={15} />
+                System
               </button>
             </div>
           </div>
