@@ -164,22 +164,41 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             </label>
           </div>
 
-          <div className="about-block">
-            <div className="about-header">
-              <Shield size={16} className="safe-text" />
-              <strong>Privacy & Safety Promise</strong>
+          <div className="settings-section">
+            <h3 className="settings-section-title">About & Privacy</h3>
+
+            <div className="about-info-grid">
+              <div className="about-info-item">
+                <span className="about-info-label">Version</span>
+                <span className="about-info-value">v0.1.0</span>
+              </div>
+              <div className="about-info-item">
+                <span className="about-info-label">Connectivity</span>
+                <span className="about-info-value">Works 100% offline</span>
+              </div>
+              <div className="about-info-item">
+                <span className="about-info-label">Telemetry</span>
+                <span className="about-info-value">No telemetry or analytics</span>
+              </div>
             </div>
-            <p className="muted small">
-              Tidyr is 100% local-first. It connects to no remote servers, collects zero telemetry, and never deletes, renames, or touches your files directly. All cleanup actions are delivered as reproducible shell scripts for your manual verification.
-            </p>
-            <button
-              type="button"
-              className="text-button"
-              onClick={handleResetDefaults}
-            >
-              <RefreshCw size={13} />
-              Reset all preferences to defaults
-            </button>
+
+            <div className="about-block">
+              <div className="about-header">
+                <Shield size={16} className="safe-text" />
+                <strong>Privacy & Safety Promise</strong>
+              </div>
+              <p className="muted small">
+                Tidyr is completely local-first. It connects to no remote servers, collects zero telemetry, and never deletes, renames, or modifies your files directly. All cleanup actions are generated as transparent, reviewable shell scripts for manual execution.
+              </p>
+              <button
+                type="button"
+                className="text-button"
+                onClick={handleResetDefaults}
+              >
+                <RefreshCw size={13} />
+                Reset all preferences to defaults
+              </button>
+            </div>
           </div>
         </div>
 
