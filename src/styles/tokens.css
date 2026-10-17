@@ -1835,6 +1835,32 @@ h3 {
   color: var(--review);
 }
 
+.drawer-errors-box {
+  background: color-mix(in srgb, var(--review-soft) 40%, var(--paper));
+  border: 1px solid var(--review);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 11.5px;
+  color: var(--ink);
+  margin-top: 10px;
+}
+
+.drawer-errors-box strong {
+  display: block;
+  color: var(--review);
+  margin-bottom: 5px;
+}
+
+.drawer-errors-box ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.drawer-errors-box li {
+  margin-bottom: 3px;
+  line-height: 1.4;
+}
+
 .interactive {
   cursor: pointer;
 }

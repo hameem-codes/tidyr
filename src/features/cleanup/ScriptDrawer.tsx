@@ -28,8 +28,8 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
     } else if (moveToTrash) {
       rawScript = rawScript.replace(/rm -rf -- /g, 'trash -- ')
     }
-  } catch {
-    rawScript = '# Unable to build a safe script for this selection.'
+  } catch (err) {
+    rawScript = `# Validation failed:\n# ${(err as Error).message || 'Unable to build a safe script for this selection.'}`
   }
 
   const handleCopyOneLiner = async () => {
@@ -108,6 +108,17 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
               </div>
             ))}
           </div>
+
+          {!validation.ok && validation.errors.length > 0 && (
+            <div className="drawer-errors-box" role="alert">
+              <strong>Validation failed:</strong>
+              <ul>
+                {validation.errors.map((err, i) => (
+                  <li key={i}>{err}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </section>
 
         <section className="drawer-section">

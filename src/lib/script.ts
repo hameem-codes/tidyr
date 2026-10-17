@@ -49,6 +49,7 @@ export function validatePaths(items: RecommendationItem[]): ScriptValidation {
   const noProtected = paths.every(path => !isProtectedFolder(path))
   const noTraversal = paths.every(path => !path.includes('..'))
   const noDanger = paths.every(path => !DANGEROUS_CHARS_REGEX.test(path))
+  const noSudo = paths.every(path => !/(^|[^a-zA-Z0-9_-])sudo([^a-zA-Z0-9_-]|$)/i.test(path))
 
   const seen = new Set<string>()
   const duplicates = new Set<string>()
@@ -57,11 +58,6 @@ export function validatePaths(items: RecommendationItem[]): ScriptValidation {
     seen.add(p)
   }
   const unique = duplicates.size === 0
-
-  const quoted = paths.every(path => {
-    const q = quotePath(path)
-    return (q.startsWith("'") || q.startsWith('"$HOME"/')) && q.endsWith("'")
-  })
 
   const errors = [] as string[]
   if (!insideHome || !noProtected) {
@@ -73,15 +69,15 @@ export function validatePaths(items: RecommendationItem[]): ScriptValidation {
   }
   if (!noTraversal) errors.push('Path traversal (..) is not allowed.')
   if (!noDanger) errors.push('Shell metacharacters and wildcards are not allowed.')
+  if (!noSudo) errors.push('Commands or paths involving sudo are strictly forbidden.')
   if (!unique) errors.push(`Duplicate paths detected: ${Array.from(duplicates).join(', ')}.`)
-  if (!quoted) errors.push('Every path must be properly quoted.')
 
   return {
     ok: errors.length === 0,
     checks: [
       { label: 'All paths inside home folder', ok: insideHome && noProtected },
-      { label: 'Paths are quoted', ok: quoted },
-      { label: 'No sudo, no wildcards', ok: noDanger && noTraversal },
+      { label: 'No sudo', ok: noSudo },
+      { label: 'No wildcards or shell metacharacters', ok: noDanger && noTraversal },
       { label: 'No duplicate paths', ok: unique },
     ],
     errors,
