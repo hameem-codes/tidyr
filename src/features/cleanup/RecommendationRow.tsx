@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { formatGB } from '../../lib/format'
+import { formatGB, formatRelativeTime } from '../../lib/format'
 import { SafetyBadge } from '../../components/SafetyBadge'
 import type { RecommendationItem } from '../../types/scan'
 
@@ -10,6 +10,12 @@ interface RecommendationRowProps {
 }
 
 export function RecommendationRow({ item, checked, onToggle }: RecommendationRowProps) {
+  const age = item.lastModified
+    ? formatRelativeTime(item.lastModified)
+    : item.daysIdle !== undefined
+      ? `${item.daysIdle} days ago`
+      : null
+
   return (
     <label
       className={`recommendation-row ${checked ? 'checked' : ''}`}
@@ -35,6 +41,7 @@ export function RecommendationRow({ item, checked, onToggle }: RecommendationRow
       <span className="rec-copy">
         <span className="rec-top-line">
           <strong>{item.label}</strong>
+          {age && <span className="rec-age">{age}</span>}
           <span className="rec-paths" title={item.paths.join('\n')}>
             <code>{item.paths.join(' · ')}</code>
           </span>
