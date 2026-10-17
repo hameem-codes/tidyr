@@ -119,7 +119,7 @@ describe('script.ts - P5.2 Rejected paths and buildScript parity', () => {
 
     it('uses osascript Finder delete for macOS trash', () => {
       const script = buildScript(sampleItems, { trash: true, platform: 'darwin' })
-      expect(script).toContain('osascript -e \'tell application "Finder" to delete POSIX file "\'"$HOME"/\'Desktop/atlas/.next"\'"\'')
+      expect(script).toContain('osascript -e \'tell application "Finder" to delete POSIX file "\'"$HOME"\'/Desktop/atlas/.next"\'')
       expect(script).not.toContain('rm -rf')
     })
 

@@ -105,8 +105,8 @@ export function buildScript(items: RecommendationItem[], options: BuildScriptOpt
         lines.push(`echo "[dry-run] would remove: " ${quoted}`)
       } else if (trash) {
         if (platform === 'darwin') {
-          const tail = path.startsWith('~/') ? path.slice(2).replace(/'/g, "'\\''") : path.replace(/'/g, "'\\''")
-          lines.push(`osascript -e 'tell application "Finder" to delete POSIX file "'"$HOME"/'${tail}"'"'`)
+          const tail = (path.startsWith('~/') ? path.slice(2) : path).replace(/'/g, "'\\''")
+          lines.push(`osascript -e 'tell application "Finder" to delete POSIX file "'"$HOME"'/${tail}"'`)
         } else if (platform === 'linux') {
           lines.push(`gio trash ${quoted}`)
         } else {
