@@ -164,7 +164,7 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
                 onChange={e => setMoveToTrash(e.target.checked)}
               />
               <div>
-                <strong>Move to Trash (via <code>trash-cli</code>)</strong>
+                <strong>Move to Trash (Finder on macOS, gio on Linux)</strong>
                 <small>Allows easy Finder recovery if needed</small>
               </div>
             </label>
