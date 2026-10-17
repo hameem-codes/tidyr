@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Clipboard, X, CheckCircle2, Circle, ShieldAlert, Terminal, Sparkles } from 'lucide-react'
-import { buildScript, validatePaths } from '../../lib/script'
+import { buildScript, validatePaths, quotePath } from '../../lib/script'
 import { formatGB } from '../../lib/format'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useToastStore } from '../../store/toastStore'
@@ -32,7 +32,7 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
   const handleCopyOneLiner = async () => {
     const oneLiner = items
       .flatMap(i => i.paths)
-      .map(p => `'${p}'`)
+      .map(p => quotePath(p))
       .join(' ')
     const cmd = `du -sh ${oneLiner}`
     try {
