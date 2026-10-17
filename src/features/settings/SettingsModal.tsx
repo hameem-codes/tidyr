@@ -88,9 +88,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               <small>Flags unbuilt node_modules and target folders in dormant repositories.</small>
             </label>
 
-            <div className="setting-line">
+            <label className="setting-line">
               <div>
-                <strong>Move to Trash instead of immediate deletion</strong>
+                <span>Move to Trash instead of immediate deletion</span>
                 <small>Emits Finder delete on macOS or <code>gio trash</code> on Linux.</small>
               </div>
               <input
@@ -98,7 +98,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 checked={settings.moveToTrash}
                 onChange={e => settings.setMoveToTrash(e.target.checked)}
               />
-            </div>
+            </label>
 
             <label className="field">
               <span>Operating system platform</span>
@@ -119,33 +119,39 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
             <div className="theme-choice">
               <div>
-                <strong>Interface theme</strong>
+                <span>Interface theme</span>
                 <small className="muted">Paper light mode or deep forest dark mode</small>
               </div>
-              <div className="theme-buttons">
+              <div className="segmented" role="radiogroup" aria-label="Interface theme">
                 <button
                   type="button"
-                  className={settings.theme === 'light' ? 'selected' : ''}
+                  role="radio"
+                  aria-checked={settings.theme === 'light'}
+                  className={settings.theme === 'light' ? 'active' : ''}
                   onClick={() => settings.setTheme('light')}
                 >
-                  <Sun size={15} />
-                  Light
+                  <Sun size={14} />
+                  <span>Light</span>
                 </button>
                 <button
                   type="button"
-                  className={settings.theme === 'dark' ? 'selected' : ''}
+                  role="radio"
+                  aria-checked={settings.theme === 'dark'}
+                  className={settings.theme === 'dark' ? 'active' : ''}
                   onClick={() => settings.setTheme('dark')}
                 >
-                  <Moon size={15} />
-                  Dark
+                  <Moon size={14} />
+                  <span>Dark</span>
                 </button>
                 <button
                   type="button"
-                  className={settings.theme === 'system' ? 'selected' : ''}
+                  role="radio"
+                  aria-checked={settings.theme === 'system'}
+                  className={settings.theme === 'system' ? 'active' : ''}
                   onClick={() => settings.setTheme('system')}
                 >
-                  <Monitor size={15} />
-                  System
+                  <Monitor size={14} />
+                  <span>System</span>
                 </button>
               </div>
             </div>
