@@ -114,6 +114,10 @@ export function buildScript(items: RecommendationItem[], options: BuildScriptOpt
   if (!validation.ok) throw new Error(validation.errors.join(' '))
   const { dryRun = false, trash = false, platform = 'darwin' } = options
 
+  if (trash && platform !== 'darwin' && platform !== 'linux') {
+    throw new Error(`Trash is only supported on darwin and linux; platform "${platform}" is unsupported.`)
+  }
+
   const lines = ['#!/bin/sh', 'set -eu', '', '# Tidyr cleanup script — review before running', '']
   items.forEach(item => {
     lines.push(`# ${item.label} (${(item.size / 1_000_000_000).toFixed(1)} GB)`)
@@ -127,8 +131,6 @@ export function buildScript(items: RecommendationItem[], options: BuildScriptOpt
           lines.push(`osascript -e 'tell application "Finder" to delete POSIX file "'"$HOME"'/${tail}"'`)
         } else if (platform === 'linux') {
           lines.push(`gio trash ${quoted}`)
-        } else {
-          lines.push(`rm -rf -- ${quoted}`)
         }
       } else {
         lines.push(`rm -rf -- ${quoted}`)

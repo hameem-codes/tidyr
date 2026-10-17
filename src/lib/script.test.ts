@@ -129,6 +129,10 @@ describe('script.ts - P5.2 Rejected paths and buildScript parity', () => {
       expect(script).not.toContain('rm -rf')
     })
 
+    it('throws error when trash requested on unsupported platform', () => {
+      expect(() => buildScript(sampleItems, { trash: true, platform: 'other' })).toThrow(/Trash is only supported/i)
+    })
+
     it('guarantees preview and copied script parity for identical parameters', () => {
       const previewScript = buildScript(sampleItems, { dryRun: false, trash: true, platform: 'darwin' })
       const copiedScript = buildScript(sampleItems, { dryRun: false, trash: true, platform: 'darwin' })
