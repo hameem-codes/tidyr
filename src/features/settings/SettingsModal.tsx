@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Moon, Sun, Monitor, X, Shield, RefreshCw } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useToastStore } from '../../store/toastStore'
+import { useDialogA11y } from '../../hooks/useDialogA11y'
 
 interface SettingsModalProps {
   onClose: () => void
@@ -10,6 +11,7 @@ interface SettingsModalProps {
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const settings = useSettingsStore()
   const showToast = useToastStore(s => s.show)
+  const containerRef = useDialogA11y<HTMLDivElement>()
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -33,15 +35,18 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div
+        ref={containerRef}
         className="settings-modal"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="settings-dialog-title"
+        tabIndex={-1}
         onClick={e => e.stopPropagation()}
       >
         <div className="drawer-head">
           <div>
             <span className="eyebrow">Local configuration</span>
-            <h2>Settings</h2>
+            <h2 id="settings-dialog-title">Settings</h2>
           </div>
           <button
             type="button"

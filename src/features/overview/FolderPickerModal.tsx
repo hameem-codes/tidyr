@@ -3,6 +3,7 @@ import { Folder, FolderSearch, X, Check, ArrowRight } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useScanStore } from '../../store/scanStore'
 import { useToastStore } from '../../store/toastStore'
+import { useDialogA11y } from '../../hooks/useDialogA11y'
 
 const FOLDER_PRESETS = [
   { path: '~', label: 'Home folder', desc: 'All user documents, caches, and developer data' },
@@ -16,6 +17,7 @@ export function FolderPickerModal({ onClose }: { onClose: () => void }) {
   const { scan } = useScanStore()
   const showToast = useToastStore(s => s.show)
   const [customPath, setCustomPath] = useState(scanFolder)
+  const containerRef = useDialogA11y<HTMLDivElement>()
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,7 +46,15 @@ export function FolderPickerModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
-      <div className="dialog folder-picker-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+      <div
+        ref={containerRef}
+        className="dialog folder-picker-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="folder-picker-dialog-title"
+        tabIndex={-1}
+        onClick={e => e.stopPropagation()}
+      >
         <button className="dialog-close" onClick={onClose} aria-label="Close">
           <X size={18} />
         </button>
@@ -54,7 +64,7 @@ export function FolderPickerModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <p className="eyebrow">Target location</p>
-        <h2>Select scan folder</h2>
+        <h2 id="folder-picker-dialog-title">Select scan folder</h2>
         <p className="muted">
           Choose which local directory Tidyr should analyze for disk usage and safe cleanup candidates.
         </p>

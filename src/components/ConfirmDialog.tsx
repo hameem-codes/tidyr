@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { AlertTriangle, X, Terminal, Check } from 'lucide-react'
+import { useDialogA11y } from '../hooks/useDialogA11y'
 
 interface ConfirmDialogProps {
   onCancel: () => void
@@ -7,6 +8,8 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({ onCancel, onConfirm }: ConfirmDialogProps) {
+  const containerRef = useDialogA11y<HTMLDivElement>()
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -21,9 +24,12 @@ export function ConfirmDialog({ onCancel, onConfirm }: ConfirmDialogProps) {
   return (
     <div className="modal-backdrop" role="presentation" onClick={onCancel}>
       <div
+        ref={containerRef}
         className="dialog"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        tabIndex={-1}
         onClick={e => e.stopPropagation()}
       >
         <button className="dialog-close" onClick={onCancel} aria-label="Close dialog">
@@ -35,7 +41,7 @@ export function ConfirmDialog({ onCancel, onConfirm }: ConfirmDialogProps) {
         </div>
 
         <p className="eyebrow">Export generated script</p>
-        <h2>Copy commands to clipboard?</h2>
+        <h2 id="confirm-dialog-title">Copy commands to clipboard?</h2>
         <p className="muted">
           Tidyr will copy a formatted POSIX shell script to your system clipboard.
           Nothing is executed on your device automatically. You maintain total control to inspect, modify, or run the script in your terminal.

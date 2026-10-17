@@ -4,6 +4,7 @@ import { buildScript, validatePaths, quotePath } from '../../lib/script'
 import { formatGB } from '../../lib/format'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useToastStore } from '../../store/toastStore'
+import { useDialogA11y } from '../../hooks/useDialogA11y'
 import type { RecommendationItem } from '../../types/scan'
 
 interface ScriptDrawerProps {
@@ -18,6 +19,7 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
   const [dryRun, setDryRun] = useState(false)
   const { moveToTrash, setMoveToTrash, platform } = useSettingsStore()
   const showToast = useToastStore(s => s.show)
+  const containerRef = useDialogA11y<HTMLElement>()
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -58,11 +60,18 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
   const isReady = validation.ok && read && closedApps
 
   return (
-    <aside className="script-drawer" role="dialog" aria-label="Generated Cleanup Script">
+    <aside
+      ref={containerRef}
+      className="script-drawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="script-drawer-title"
+      tabIndex={-1}
+    >
       <div className="drawer-head">
         <div>
           <span className="eyebrow">Local script inspector</span>
-          <h2>Generated script</h2>
+          <h2 id="script-drawer-title">Generated script</h2>
         </div>
         <button
           type="button"
