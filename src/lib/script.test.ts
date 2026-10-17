@@ -103,6 +103,26 @@ describe('script.ts - P5.2 Rejected paths and buildScript parity', () => {
       expect(res.ok).toBe(false)
       expect(res.errors.some(e => e.includes('sudo'))).toBe(true)
     })
+
+    it('rejects ~/.ssh, ~/.gnupg, ~/.aws, ~/.config, and paths with a double quote', () => {
+      const sensitiveList = ['~/.ssh', '~/.gnupg', '~/.aws', '~/.config']
+      for (const p of sensitiveList) {
+        const res = validatePaths([makeItem([p])])
+        expect(res.ok).toBe(false)
+        expect(res.errors.length).toBeGreaterThan(0)
+      }
+
+      const doubleQuotePaths = [
+        '~/Desktop/atlas/node_modules"test',
+        '~/.npm/"quoted"',
+        '~/foo"bar/.next',
+      ]
+      for (const p of doubleQuotePaths) {
+        const res = validatePaths([makeItem([p])])
+        expect(res.ok).toBe(false)
+        expect(res.errors.some(e => e.includes('double quote') || e.includes('metacharacters'))).toBe(true)
+      }
+    })
   })
 
   describe('buildScript options & preview parity', () => {
