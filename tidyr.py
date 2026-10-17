@@ -234,8 +234,8 @@ class TidyrScanner:
         if candidate_id:
             node["candidate"] = candidate_id
 
-        # Check if current directory is a code project (not inside node_modules or .git)
-        if "node_modules" not in rel_parts and ".git" not in rel_parts and is_project_dir(current):
+        is_proj = "node_modules" not in rel_parts and ".git" not in rel_parts and is_project_dir(current)
+        if is_proj:
             node["category"] = CATEGORIES["CODE"]
             self._handle_project_subitems(current, tilde_path)
 
@@ -252,8 +252,18 @@ class TidyrScanner:
                                 continue
                             if entry.is_dir(follow_symlinks=False):
                                 child_path = Path(entry.path)
-                                # If this child is node_modules or .next inside a project, we may handle it specially
                                 child_node = self._scan_node(child_path, depth + 1, max_depth)
+                                if is_proj:
+                                    proj_slug = sanitize_id(current.name)
+                                    if entry.name == "node_modules":
+                                        child_node["candidate"] = f"node-modules-{proj_slug}"
+                                        child_node["category"] = CATEGORIES["PACKAGE"]
+                                    elif entry.name == ".next":
+                                        child_node["candidate"] = f"next-{proj_slug}"
+                                        child_node["category"] = CATEGORIES["CODE"]
+                                    elif entry.name == ".turbo":
+                                        child_node["candidate"] = f"turbo-{proj_slug}"
+                                        child_node["category"] = CATEGORIES["CODE"]
                                 if child_node["size"] > 0 or child_node.get("children"):
                                     children.append(child_node)
                                 total_size += child_node["size"]
@@ -330,6 +340,7 @@ class TidyrScanner:
     def _handle_project_subitems(self, project_dir: Path, proj_tilde: str):
         """Handle per-project node_modules, .next, .turbo items."""
         proj_name = project_dir.name
+        proj_slug = sanitize_id(proj_name)
         last_mod, days_idle = get_project_activity(
             project_dir, skipped_list=self.skipped, home_path=self.home
         )
@@ -339,7 +350,7 @@ class TidyrScanner:
         if nm_path.exists() and not nm_path.is_symlink():
             nm_size, _ = get_dir_size_and_mtime(nm_path, skipped_list=self.skipped, home_path=self.home)
             if nm_size > 0:
-                cid = f"node-modules-{sanitize_id(proj_name)}"
+                cid = f"node-modules-{proj_slug}"
                 nm_tilde = f"{proj_tilde}/node_modules"
                 item_data: Dict[str, Any] = {
                     "id": cid,
@@ -357,32 +368,36 @@ class TidyrScanner:
                         item_data["note"] = "Inactive project dependencies. Regenerates with npm install."
                 self.items_map[cid] = item_data
 
-        # 2. Next.js and Turbo build outputs
-        build_paths = []
-        build_size = 0
-        for out_dir in (".next", ".turbo"):
-            out_p = project_dir / out_dir
-            if out_p.exists() and not out_p.is_symlink():
-                sz, _ = get_dir_size_and_mtime(out_p, skipped_list=self.skipped, home_path=self.home)
-                if sz > 0:
-                    build_paths.append(f"{proj_tilde}/{out_dir}")
-                    build_size += sz
-
-        if build_paths:
-            next_cid = "next-output"
-            if next_cid in self.items_map:
-                self.items_map[next_cid]["size"] += build_size
-                for bp in build_paths:
-                    if bp not in self.items_map[next_cid]["paths"]:
-                        self.items_map[next_cid]["paths"].append(bp)
-            else:
-                self.items_map[next_cid] = {
-                    "id": next_cid,
-                    "label": "Next.js & Turbo output",
+        # 2. Per-project .next
+        next_path = project_dir / ".next"
+        if next_path.exists() and not next_path.is_symlink():
+            next_size, _ = get_dir_size_and_mtime(next_path, skipped_list=self.skipped, home_path=self.home)
+            if next_size > 0:
+                cid = f"next-{proj_slug}"
+                next_tilde = f"{proj_tilde}/.next"
+                self.items_map[cid] = {
+                    "id": cid,
+                    "label": f"{proj_name}/.next",
                     "tier": "safe",
-                    "size": build_size,
-                    "paths": build_paths,
-                    "note": "Build artifacts, not source files.",
+                    "size": next_size,
+                    "paths": [next_tilde],
+                    "note": "Next.js build cache and output; safe to clean.",
+                }
+
+        # 3. Per-project .turbo
+        turbo_path = project_dir / ".turbo"
+        if turbo_path.exists() and not turbo_path.is_symlink():
+            turbo_size, _ = get_dir_size_and_mtime(turbo_path, skipped_list=self.skipped, home_path=self.home)
+            if turbo_size > 0:
+                cid = f"turbo-{proj_slug}"
+                turbo_tilde = f"{proj_tilde}/.turbo"
+                self.items_map[cid] = {
+                    "id": cid,
+                    "label": f"{proj_name}/.turbo",
+                    "tier": "safe",
+                    "size": turbo_size,
+                    "paths": [turbo_tilde],
+                    "note": "Turborepo build cache and artifacts; regenerates on build.",
                 }
 
 
