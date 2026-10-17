@@ -92,25 +92,6 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
           <span className="script-badge">POSIX /bin/sh</span>
         </div>
 
-        <div className="script-preview-container">
-          <div className="script-preview-bar">
-            <span className="script-preview-title">
-              <Terminal size={13} /> tidyr_cleanup.sh
-            </span>
-            <button
-              type="button"
-              className="text-button copy-oneliner-btn"
-              onClick={handleCopyOneLiner}
-              title="Copy shell command to check directory sizes before removing"
-            >
-              Copy <code>du -sh</code> check
-            </button>
-          </div>
-          <pre className="script-preview">
-            <code>{rawScript}</code>
-          </pre>
-        </div>
-
         <section className="drawer-section">
           <h3>Safety assurances</h3>
           <div className="check-grid">
@@ -170,6 +151,25 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
             </label>
           </div>
         </section>
+
+        <div className="script-preview-container">
+          <div className="script-preview-bar">
+            <span className="script-preview-title">
+              <Terminal size={13} /> tidyr_cleanup.sh
+            </span>
+            <button
+              type="button"
+              className="text-button copy-oneliner-btn"
+              onClick={handleCopyOneLiner}
+              title="Copy shell command to check directory sizes before removing"
+            >
+              Copy <code>du -sh</code> check
+            </button>
+          </div>
+          <pre className="script-preview">
+            <code>{rawScript}</code>
+          </pre>
+        </div>
 
         <section className="drawer-section">
           <h3>Manual acknowledgments</h3>
