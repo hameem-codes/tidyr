@@ -3,6 +3,7 @@ import {
   formatBytes,
   formatGB,
   formatCompactGB,
+  formatSize,
   homePath,
   pathTail,
   formatRelativeTime,
@@ -79,4 +80,35 @@ describe('format.ts - P5.3 Formatting utilities', () => {
       expect(formatRelativeTime(now - 4 * 86400 * 1000)).toBe('4 days ago')
     })
   })
+
+  describe('formatSize', () => {
+    it('formats 0 B as 0 B', () => {
+      expect(formatSize(0)).toBe('0 B')
+    })
+
+    it('formats 900 KB (below 1 MB) as KB with no decimals', () => {
+      expect(formatSize(900_000)).toBe('900 KB')
+    })
+
+    it('formats 3 MB (from 1 MB) as MB with no decimals', () => {
+      expect(formatSize(3_000_000)).toBe('3 MB')
+    })
+
+    it('formats 99 MB as MB with no decimals', () => {
+      expect(formatSize(99_000_000)).toBe('99 MB')
+    })
+
+    it('formats 100 MB (0.1 GB threshold) as GB with one decimal', () => {
+      expect(formatSize(100_000_000)).toBe('0.1 GB')
+    })
+
+    it('formats 13.4 GB as GB with one decimal', () => {
+      expect(formatSize(13_400_000_000)).toBe('13.4 GB')
+    })
+
+    it('handles negative or invalid values gracefully', () => {
+      expect(formatSize(-500)).toBe('0 B')
+    })
+  })
 })
+
