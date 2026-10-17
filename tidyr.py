@@ -426,6 +426,19 @@ def is_localhost_origin(origin: Optional[str]) -> bool:
         return False
 
 
+def is_valid_host(host: Optional[str]) -> bool:
+    if not host:
+        return False
+    try:
+        parsed = urllib.parse.urlsplit("//" + host)
+        if parsed.hostname not in ("localhost", "127.0.0.1"):
+            return False
+        _ = parsed.port
+        return True
+    except Exception:
+        return False
+
+
 def send_cors_headers(handler: http.server.BaseHTTPRequestHandler):
     origin = handler.headers.get("Origin")
     if is_localhost_origin(origin):
@@ -589,6 +602,25 @@ class TidyrHTTPHandler(http.server.BaseHTTPRequestHandler):
         self.send_error(404, "Not Found")
 
     def do_POST(self):
+        # 1. Content-Type must be application/json
+        ct = self.headers.get("Content-Type", "")
+        ct_base = ct.split(";")[0].strip().lower()
+        if ct_base != "application/json":
+            self._send_json(403, {"error": "Forbidden: Content-Type must be application/json"})
+            return
+
+        # 2. Any Origin header must be a localhost origin
+        origin = self.headers.get("Origin")
+        if not is_localhost_origin(origin):
+            self._send_json(403, {"error": "Forbidden: Invalid Origin"})
+            return
+
+        # 3. Host header must be 127.0.0.1 or localhost (with port)
+        host = self.headers.get("Host")
+        if not is_valid_host(host):
+            self._send_json(403, {"error": "Forbidden: Invalid Host"})
+            return
+
         url_parts = urllib.parse.urlsplit(self.path)
         path = url_parts.path.strip("/")
 
