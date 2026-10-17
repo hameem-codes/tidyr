@@ -17,3 +17,26 @@ export function simulateScan(onProgress: (value: number, folders: number) => voi
     }, 180)
   })
 }
+
+export async function checkServerConnected(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/scan/status', { method: 'GET', cache: 'no-store' })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+export async function revealPath(path: string): Promise<boolean> {
+  try {
+    const res = await fetch('/api/reveal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+

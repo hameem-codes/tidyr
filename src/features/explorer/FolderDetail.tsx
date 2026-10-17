@@ -1,9 +1,11 @@
-import { ExternalLink, Plus, Check } from 'lucide-react'
+import { ExternalLink, Plus, Check, Copy } from 'lucide-react'
 import { formatGB } from '../../lib/format'
 import type { FolderNode, RecommendationItem } from '../../types/scan'
 import { SafetyBadge } from '../../components/SafetyBadge'
 import { useToastStore } from '../../store/toastStore'
 import { useSelectionStore } from '../../store/selectionStore'
+import { useScanStore } from '../../store/scanStore'
+import { revealPath } from '../../lib/api'
 
 interface FolderDetailProps {
   node: FolderNode | null
@@ -14,13 +16,25 @@ interface FolderDetailProps {
 export function FolderDetail({ node, item, onAdd }: FolderDetailProps) {
   const showToast = useToastStore(s => s.show)
   const selectedIds = useSelectionStore(s => s.selectedIds)
+  const serverConnected = useScanStore(s => s.serverConnected)
   const isSelected = item ? selectedIds.includes(item.id) : false
 
-  const handleOpenInFinder = async () => {
+  const handleRevealOrCopy = async () => {
     if (!node) return
+    if (serverConnected) {
+      try {
+        const ok = await revealPath(node.path)
+        if (ok) {
+          showToast(`Revealed ${node.path} in file manager`)
+          return
+        }
+      } catch {
+        // Fall back to clipboard
+      }
+    }
     try {
       await navigator.clipboard?.writeText(node.path)
-      showToast(`Copied ${node.path} to clipboard (Finder reveal)`)
+      showToast(`Copied ${node.path} to clipboard`)
     } catch {
       showToast(`Selected: ${node.path}`)
     }
@@ -86,11 +100,11 @@ export function FolderDetail({ node, item, onAdd }: FolderDetailProps) {
         <button
           type="button"
           className="button ghost"
-          onClick={handleOpenInFinder}
-          title="Copy path and simulate Finder reveal"
+          onClick={handleRevealOrCopy}
+          title={serverConnected ? 'Reveal folder in file manager' : 'Copy folder path to clipboard'}
         >
-          <ExternalLink size={15} />
-          Reveal in Finder
+          {serverConnected ? <ExternalLink size={15} /> : <Copy size={15} />}
+          {serverConnected ? 'Reveal in Finder' : 'Copy path'}
         </button>
 
         {item && (
