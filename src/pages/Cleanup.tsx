@@ -61,10 +61,13 @@ export default function Cleanup() {
     if (!data) return []
     const q = query.toLowerCase()
     let items = data.items.filter(item => {
-      if (!isItemIdleEligible(item, idleDays)) return false
-      if (filter === 'idle' && !isIdleProjectItem(item)) return false
-      if (filter === 'safe' && item.tier !== 'safe') return false
-      if (filter === 'review' && item.tier !== 'review') return false
+      if (filter === 'idle') {
+        if (!isIdleProjectItem(item) || !isItemIdleEligible(item, idleDays)) return false
+      } else if (filter === 'safe') {
+        if (item.tier !== 'safe') return false
+      } else if (filter === 'review') {
+        if (item.tier !== 'review') return false
+      }
 
       return (
         item.label.toLowerCase().includes(q) ||
@@ -147,10 +150,10 @@ export default function Cleanup() {
                     : 'Idle projects'}
               <span>
                 {tab === 'all'
-                  ? data.items.filter(i => isItemIdleEligible(i, idleDays)).length
+                  ? data.items.length
                   : tab === 'idle'
                     ? data.items.filter(i => isIdleProjectItem(i) && isItemIdleEligible(i, idleDays)).length
-                    : data.items.filter(i => isItemIdleEligible(i, idleDays) && i.tier === tab).length}
+                    : data.items.filter(i => i.tier === tab).length}
               </span>
             </button>
           ))}
