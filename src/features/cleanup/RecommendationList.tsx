@@ -1,6 +1,6 @@
 import { RecommendationRow } from './RecommendationRow'
 import type { RecommendationItem } from '../../types/scan'
-import { formatGB } from '../../lib/format'
+import { formatSize } from '../../lib/format'
 import { ShieldCheck, AlertCircle } from 'lucide-react'
 
 interface RecommendationListProps {
@@ -40,7 +40,7 @@ export function RecommendationList({
             </div>
           </div>
           <span className={`group-total ${toneClass}`}>
-            {formatGB(groupTotal)}
+            {formatSize(groupTotal)}
           </span>
         </div>
 

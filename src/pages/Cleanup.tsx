@@ -9,7 +9,7 @@ import { RecommendationList } from '../features/cleanup/RecommendationList'
 import { SelectionBar } from '../features/cleanup/SelectionBar'
 import { ScriptDrawer } from '../features/cleanup/ScriptDrawer'
 import { ConfirmDialog } from '../components/ConfirmDialog'
-import { formatGB } from '../lib/format'
+import { formatSize } from '../lib/format'
 import { buildScript } from '../lib/script'
 import {
   filterItems,
@@ -158,7 +158,7 @@ export default function Cleanup() {
             <span className="stamp-status">
               {selected.length ? 'Ready to generate' : 'Nothing selected'}
             </span>
-            <strong>{formatGB(total)}</strong>
+            <strong>{formatSize(total)}</strong>
             <span>{selected.length} items targeted in script</span>
           </div>
 

@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { formatGB, formatRelativeTime } from '../../lib/format'
+import { formatSize, formatRelativeTime } from '../../lib/format'
 import { SafetyBadge } from '../../components/SafetyBadge'
 import type { RecommendationItem } from '../../types/scan'
 
@@ -31,7 +31,7 @@ export function RecommendationRow({ item, checked, onToggle }: RecommendationRow
         type="checkbox"
         checked={checked}
         onChange={onToggle}
-        aria-label={`Select ${item.label} (${formatGB(item.size)})`}
+        aria-label={`Select ${item.label} (${formatSize(item.size)})`}
       />
 
       <span className="fake-check" aria-hidden="true">
@@ -49,7 +49,7 @@ export function RecommendationRow({ item, checked, onToggle }: RecommendationRow
         <small className="rec-note">{item.note}</small>
       </span>
 
-      <span className="rec-size">{formatGB(item.size)}</span>
+      <span className="rec-size">{formatSize(item.size)}</span>
       <SafetyBadge tier={item.tier} />
     </label>
   )

@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { squarify } from '../../lib/treemap'
-import { formatGB } from '../../lib/format'
+import { formatSize } from '../../lib/format'
 import { SafetyBadge } from '../../components/SafetyBadge'
 import { useSettingsStore } from '../../store/settingsStore'
 import type { FolderNode, RecommendationItem } from '../../types/scan'
@@ -164,10 +164,10 @@ export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
                   })
                 }
               }}
-              title={`${rect.node.name} · ${formatGB(rect.node.size)}${candidate ? ` · ${candidate.tier}` : ''}`}
+              title={`${rect.node.name} · ${formatSize(rect.node.size)}${candidate ? ` · ${candidate.tier}` : ''}`}
             >
               {!isTooSmall && <span className="tile-label">{rect.node.name}</span>}
-              {!isTooSmall && !isTiny && <span className="tile-size">{formatGB(rect.node.size)}</span>}
+              {!isTooSmall && !isTiny && <span className="tile-size">{formatSize(rect.node.size)}</span>}
               {candidate && !isTiny && (
                 <span className="tile-badge">
                   <SafetyBadge tier={candidate.tier} />
@@ -201,7 +201,7 @@ export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
             </div>
             <div className="tooltip-path"><code>{hovered.node.path}</code></div>
             <div className="tooltip-meta">
-              <span>Usage: <b>{formatGB(hovered.node.size)}</b></span>
+              <span>Usage: <b>{formatSize(hovered.node.size)}</b></span>
               <span>Category: <b>{hovered.node.category}</b></span>
             </div>
             {hovered.candidate && (
@@ -240,7 +240,7 @@ export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
                   <strong>{node.name}</strong>
                   <code>{node.path}</code>
                 </span>
-                <b className="list-size">{formatGB(node.size)}</b>
+                <b className="list-size">{formatSize(node.size)}</b>
                 {candidate && <SafetyBadge tier={candidate.tier} />}
               </button>
             )

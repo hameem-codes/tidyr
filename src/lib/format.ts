@@ -6,6 +6,16 @@ export function formatBytes(bytes: number, decimals = 1) {
 }
 export function formatGB(bytes: number, decimals = 1) { return `${(bytes / 1_000_000_000).toFixed(decimals)} GB` }
 export function formatCompactGB(bytes: number) { return `${(bytes / 1_000_000_000).toFixed(bytes < 10_000_000_000 ? 1 : 0)} GB` }
+export function formatSize(bytes: number): string {
+  if (!bytes || bytes <= 0) return '0 B'
+  if (bytes >= 100_000_000) {
+    return `${(bytes / 1_000_000_000).toFixed(1)} GB`
+  }
+  if (bytes >= 1_000_000) {
+    return `${Math.round(bytes / 1_000_000)} MB`
+  }
+  return `${Math.round(bytes / 1_000)} KB`
+}
 export function homePath(path: string) { return path === '~' ? '~' : path.replace(/^~\//, '~/') }
 export function pathTail(path: string) { return path.split('/').filter(Boolean).pop() || '~' }
 

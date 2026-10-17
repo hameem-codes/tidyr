@@ -1,5 +1,5 @@
 import { ExternalLink, Plus, Check, Copy } from 'lucide-react'
-import { formatGB } from '../../lib/format'
+import { formatSize } from '../../lib/format'
 import type { FolderNode, RecommendationItem } from '../../types/scan'
 import { SafetyBadge } from '../../components/SafetyBadge'
 import { useToastStore } from '../../store/toastStore'
@@ -73,7 +73,7 @@ export function FolderDetail({ node, item, onAdd }: FolderDetailProps) {
 
         <div>
           <dt>Disk footprint</dt>
-          <dd className="detail-size">{formatGB(node.size)}</dd>
+          <dd className="detail-size">{formatSize(node.size)}</dd>
         </div>
 
         <div>

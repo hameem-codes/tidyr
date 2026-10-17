@@ -1,4 +1,5 @@
 import type { RecommendationItem } from '../types/scan'
+import { formatSize } from './format'
 
 export interface ScriptValidation { ok: boolean; checks: { label: string; ok: boolean }[]; errors: string[] }
 const DANGEROUS_CHARS_REGEX = /["`$;|&<>*?\[\]{}()\\!#\n\r\0]/
@@ -120,7 +121,7 @@ export function buildScript(items: RecommendationItem[], options: BuildScriptOpt
 
   const lines = ['#!/bin/sh', 'set -eu', '', '# Tidyr cleanup script — review before running', '']
   items.forEach(item => {
-    lines.push(`# ${item.label} (${(item.size / 1_000_000_000).toFixed(1)} GB)`)
+    lines.push(`# ${item.label} (${formatSize(item.size)})`)
     item.paths.forEach(path => {
       const quoted = quotePath(path)
       if (dryRun) {

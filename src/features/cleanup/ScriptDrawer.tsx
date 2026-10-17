@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Clipboard, X, CheckCircle2, Circle, ShieldAlert, Terminal, Sparkles } from 'lucide-react'
 import { buildScript, validatePaths, quotePath } from '../../lib/script'
-import { formatGB } from '../../lib/format'
+import { formatSize } from '../../lib/format'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useToastStore } from '../../store/toastStore'
 import { useDialogA11y } from '../../hooks/useDialogA11y'
@@ -86,7 +86,7 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
       <div className="drawer-scroll">
         <div className="script-stat">
           <div>
-            <strong>{formatGB(totalBytes)}</strong>
+            <strong>{formatSize(totalBytes)}</strong>
             <p className="muted small">Reclaimable across {items.length} selected items</p>
           </div>
           <span className="script-badge">POSIX /bin/sh</span>

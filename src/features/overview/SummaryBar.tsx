@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useScanStore } from '../../store/scanStore'
 import { useSelectionStore } from '../../store/selectionStore'
-import { formatGB } from '../../lib/format'
+import { formatSize } from '../../lib/format'
 import { ShieldCheck, AlertCircle, HardDrive, Sparkles } from 'lucide-react'
 
 export function SummaryBar() {
@@ -36,19 +36,19 @@ export function SummaryBar() {
             <Sparkles size={14} className="hero-sparkle" />
             Projected free space after cleanup
           </span>
-          <span className="hero-tag">+{formatGB(selectedTotal)} reclaimable</span>
+          <span className="hero-tag">+{formatSize(selectedTotal)} reclaimable</span>
         </div>
 
-        <strong className="hero-metric">{formatGB(after)}</strong>
+        <strong className="hero-metric">{formatSize(after)}</strong>
 
-        <div className="before-after" title={`Available disk: from ${formatGB(data.baseFreeBytes)} to ${formatGB(after)}`}>
+        <div className="before-after" title={`Available disk: from ${formatSize(data.baseFreeBytes)} to ${formatSize(after)}`}>
           <span style={{ width: `${percentGain}%` }} />
           <i aria-hidden="true" />
         </div>
 
         <div className="summary-foot">
-          <span>Current free: <b>{formatGB(data.baseFreeBytes)}</b></span>
-          <span>Projected: <b>{formatGB(after)}</b></span>
+          <span>Current free: <b>{formatSize(data.baseFreeBytes)}</b></span>
+          <span>Projected: <b>{formatSize(after)}</b></span>
         </div>
       </div>
 
@@ -57,7 +57,7 @@ export function SummaryBar() {
           <span className="mini-dot safe-dot" aria-hidden="true" />
           Safe to remove
         </span>
-        <strong>{formatGB(safe)}</strong>
+        <strong>{formatSize(safe)}</strong>
         <span className="summary-caption">
           {data.items.filter(i => i.tier === 'safe').length} build & package caches
         </span>
@@ -68,7 +68,7 @@ export function SummaryBar() {
           <span className="mini-dot review-dot" aria-hidden="true" />
           Requires review
         </span>
-        <strong>{formatGB(review)}</strong>
+        <strong>{formatSize(review)}</strong>
         <span className="summary-caption">
           {data.items.filter(i => i.tier === 'review').length} models & dev dependencies
         </span>
@@ -79,7 +79,7 @@ export function SummaryBar() {
           <span className="mini-dot ink-dot" aria-hidden="true" />
           Surveyed footprint
         </span>
-        <strong>{formatGB(data.scannedBytes)}</strong>
+        <strong>{formatSize(data.scannedBytes)}</strong>
         <span className="summary-caption">Across indexed directories</span>
       </div>
     </section>

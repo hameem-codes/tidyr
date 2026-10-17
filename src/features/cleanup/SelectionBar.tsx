@@ -1,5 +1,5 @@
 import { Eye, RotateCcw, CheckCheck } from 'lucide-react'
-import { formatGB } from '../../lib/format'
+import { formatSize } from '../../lib/format'
 
 interface SelectionBarProps {
   total: number
@@ -19,7 +19,7 @@ export function SelectionBar({
   return (
     <aside className="selection-bar" aria-label="Cleanup selection controls">
       <div className="selection-summary">
-        <strong>{formatGB(total)}</strong>
+        <strong>{formatSize(total)}</strong>
         <span className="selection-meta">
           selected · {count} {count === 1 ? 'directory' : 'directories'}
         </span>
