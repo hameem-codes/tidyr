@@ -1,0 +1,39 @@
+{
+  "home": "~",
+  "scannedAt": "2 minutes ago",
+  "scannedBytes": 135000000000,
+  "baseFreeBytes": 50300000000,
+  "skipped": [
+    {"path":"~/Library/Mail","reason":"permission denied"},
+    {"path":"~/.Trash","reason":"permission denied"},
+    {"path":"~/Library/Containers","reason":"permission denied"}
+  ],
+  "tree": {
+    "id":"home","name":"~","path":"~","size":135000000000,"category":"Home","children":[
+      {"id":"desktop","name":"Desktop","path":"~/Desktop","size":41000000000,"category":"Code projects","children":[
+        {"id":"atlas","name":"atlas","path":"~/Desktop/atlas","size":16600000000,"category":"Code projects","children":[{"id":"atlas-src","name":"src","path":"~/Desktop/atlas/src","size":4100000000,"category":"Code projects"},{"id":"atlas-next","name":".next","path":"~/Desktop/atlas/.next","size":12300000000,"category":"Code projects","candidate":"next-output"}]},
+        {"id":"kite","name":"kite","path":"~/Desktop/kite","size":12300000000,"category":"Code projects","children":[{"id":"kite-next","name":".next","path":"~/Desktop/kite/.next","size":9600000000,"category":"Code projects","candidate":"next-output"},{"id":"kite-src","name":"src","path":"~/Desktop/kite/src","size":2700000000,"category":"Code projects"}]},
+        {"id":"desktop-docs","name":"notes & media","path":"~/Desktop/notes-and-media","size":7100000000,"category":"Documents"}
+      ]},
+      {"id":"ollama","name":".ollama","path":"~/.ollama","size":17000000000,"category":"AI models","children":[{"id":"ollama-models","name":"models","path":"~/.ollama/models","size":16700000000,"category":"AI models","candidate":"ollama-models"},{"id":"ollama-meta","name":"metadata","path":"~/.ollama/metadata","size":300000000,"category":"AI models"}]},
+      {"id":"npm","name":".npm","path":"~/.npm","size":13400000000,"category":"Package caches","candidate":"npm-cache"},
+      {"id":"library","name":"Library","path":"~/Library","size":17000000000,"category":"SDKs","children":[{"id":"android","name":"Android","path":"~/Library/Android","size":9900000000,"category":"SDKs","candidate":"android"},{"id":"xcode","name":"Developer/Xcode","path":"~/Library/Developer/Xcode","size":6400000000,"category":"SDKs","candidate":"xcode-derived"},{"id":"library-other","name":"Application Support","path":"~/Library/Application Support","size":700000000,"category":"Documents"}]},
+      {"id":"gradle","name":".gradle","path":"~/.gradle","size":6600000000,"category":"Package caches","children":[{"id":"gradle-caches","name":"caches","path":"~/.gradle/caches","size":6600000000,"category":"Package caches","candidate":"gradle-cache"}]},
+      {"id":"node-modules","name":"node_modules","path":"~/node_modules","size":6600000000,"category":"Package caches","candidate":"node-modules"},
+      {"id":"documents","name":"Documents","path":"~/Documents","size":14400000000,"category":"Documents","children":[{"id":"docs-work","name":"work archives","path":"~/Documents/work-archives","size":8300000000,"category":"Documents"},{"id":"docs-assets","name":"design assets","path":"~/Documents/design-assets","size":6100000000,"category":"Documents"}]},
+      {"id":"cache","name":".cache","path":"~/.cache","size":9000000000,"category":"Package caches","candidate":"browser-cache"},
+      {"id":"movies","name":"Movies","path":"~/Movies","size":10000000000,"category":"Documents"}
+    ]
+  },
+  "items": [
+    {"id":"npm-cache","label":"npm cache","tier":"safe","size":13400000000,"paths":["~/.npm"],"note":"Regenerates on next install."},
+    {"id":"next-output","label":"Next.js & Turbo output","tier":"safe","size":12300000000,"paths":["~/Desktop/atlas/.next","~/Desktop/kite/.next"],"note":"Build artifacts, not source files."},
+    {"id":"gradle-cache","label":"Gradle caches","tier":"safe","size":6600000000,"paths":["~/.gradle/caches"],"note":"Dependencies are fetched again when needed."},
+    {"id":"xcode-derived","label":"Xcode DerivedData","tier":"safe","size":6400000000,"paths":["~/Library/Developer/Xcode"],"note":"Build intermediates only; projects stay intact."},
+    {"id":"browser-cache","label":"Browser cache","tier":"safe","size":3000000000,"paths":["~/.cache"],"note":"Temporary browser files; sessions are untouched."},
+    {"id":"android","label":"Android SDK & emulators","tier":"review","size":17200000000,"paths":["~/Library/Android"],"note":"Keep if you build Android apps locally."},
+    {"id":"ollama-models","label":"Ollama models","tier":"review","size":16700000000,"paths":["~/.ollama/models"],"note":"Re-downloads can be slow and expensive."},
+    {"id":"node-modules","label":"node_modules (idle projects)","tier":"review","size":6600000000,"paths":["~/node_modules"],"note":"Review project by project before removing."},
+    {"id":"docker-volumes","label":"Docker volumes","tier":"review","size":15500000000,"paths":["~/.docker/volumes"],"note":"May contain local databases or dev environments."}
+  ]
+}
