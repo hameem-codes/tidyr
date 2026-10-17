@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { squarify } from './treemap'
 import type { FolderNode } from '../types/scan'
+import sampleScan from '../../public/scan.json'
 
 describe('treemap.ts - P5.3 Treemap layout and squarify algorithm', () => {
   const makeNode = (name: string, size: number, id = name): FolderNode => ({
@@ -70,5 +71,29 @@ describe('treemap.ts - P5.3 Treemap layout and squarify algorithm', () => {
       expect(Number.isNaN(rect.x)).toBe(false)
       expect(Number.isNaN(rect.width)).toBe(false)
     })
+  })
+
+  it('G2: every tile for sample scan.json has aspect ratio under 6:1 and tile areas sum to container area', () => {
+    const nodes = (sampleScan as any).tree.children as FolderNode[]
+    const width = 800
+    const height = 600
+    const containerArea = width * height
+
+    const rects = squarify(nodes, width, height)
+    expect(rects.length).toBe(nodes.length)
+
+    let totalTileArea = 0
+    for (const rect of rects) {
+      const area = rect.width * rect.height
+      totalTileArea += area
+
+      const maxSide = Math.max(rect.width, rect.height)
+      const minSide = Math.min(rect.width, rect.height)
+      const aspectRatio = minSide > 0 ? maxSide / minSide : Infinity
+
+      expect(aspectRatio).toBeLessThan(6)
+    }
+
+    expect(totalTileArea).toBeCloseTo(containerArea, 1)
   })
 })
