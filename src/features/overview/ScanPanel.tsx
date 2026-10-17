@@ -71,7 +71,7 @@ export function ScanPanel() {
           <button
             type="button"
             className="button dark scan-button"
-            onClick={() => scan()}
+            onClick={() => scan(scanFolder)}
             disabled={running}
           >
             <RefreshCw className={running ? 'spin' : ''} size={15} />

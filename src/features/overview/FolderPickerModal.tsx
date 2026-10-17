@@ -34,7 +34,7 @@ export function FolderPickerModal({ onClose }: { onClose: () => void }) {
     setScanFolder(path)
     onClose()
     showToast(`Scanning target folder: ${path}`)
-    await scan()
+    await scan(path)
   }
 
   const handleSubmitCustom = (e: React.FormEvent) => {
