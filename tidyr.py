@@ -10,6 +10,9 @@ import json
 import time
 import shutil
 import argparse
+import mimetypes
+import http.server
+import urllib.parse
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, Tuple
@@ -401,7 +404,85 @@ class TidyrScanner:
                 }
 
 
+class TidyrHTTPHandler(http.server.BaseHTTPRequestHandler):
+    dist_dir: Path = Path("dist").resolve()
+
+    def do_GET(self):
+        url_parts = urllib.parse.urlsplit(self.path)
+        rel_path = url_parts.path.lstrip("/")
+
+        target_file = (self.dist_dir / rel_path).resolve()
+        try:
+            # Check if file exists inside dist_dir
+            if (self.dist_dir in target_file.parents or target_file == self.dist_dir) and target_file.is_file():
+                self._serve_file(target_file)
+                return
+        except Exception:
+            pass
+
+        # SPA fallback to index.html
+        index_file = self.dist_dir / "index.html"
+        if index_file.is_file():
+            self._serve_file(index_file)
+            return
+
+        self.send_error(404, "Not Found")
+
+    def _serve_file(self, filepath: Path):
+        content_type, _ = mimetypes.guess_type(str(filepath))
+        if not content_type:
+            if filepath.suffix == ".js":
+                content_type = "application/javascript"
+            elif filepath.suffix == ".css":
+                content_type = "text/css"
+            elif filepath.suffix == ".json":
+                content_type = "application/json"
+            else:
+                content_type = "application/octet-stream"
+
+        try:
+            with open(filepath, "rb") as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
+        except OSError:
+            self.send_error(500, "Error reading file")
+
+    def log_message(self, format, *args):
+        # Quiet standard request logs
+        pass
+
+
+def run_server(host: str = "127.0.0.1", port: int = 3000, dist_dir: Optional[Path] = None):
+    """Run local HTTP server bound exclusively to 127.0.0.1."""
+    resolved_dist = (dist_dir or Path("dist")).resolve()
+    TidyrHTTPHandler.dist_dir = resolved_dist
+
+    server = http.server.ThreadingHTTPServer((host, port), TidyrHTTPHandler)
+    print(f"Tidyr local server running at http://{host}:{port}/")
+    print(f"Serving UI from {resolved_dist}")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down server.")
+        server.server_close()
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "serve":
+        parser = argparse.ArgumentParser(description="Tidyr Local Server")
+        parser.add_argument("serve_cmd", help="serve")
+        parser.add_argument("--port", type=int, default=3000, help="Port to listen on (default: 3000)")
+        parser.add_argument("--dist", type=str, default="dist", help="Built UI dist directory (default: dist)")
+        parser.add_argument("--home", dest="home_override", help="Override home directory path")
+        args = parser.parse_args()
+
+        run_server(host="127.0.0.1", port=args.port, dist_dir=Path(args.dist))
+        return
+
     parser = argparse.ArgumentParser(description="Tidyr Home Scanner & Bridge")
     parser.add_argument("folder", nargs="?", default=None, help="Root folder to scan (default: user home)")
     parser.add_argument("--json", dest="json_path", help="Save scan output to specified JSON file (or - for stdout)")
