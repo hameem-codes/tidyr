@@ -2717,3 +2717,36 @@ h3 {
     bottom: 80px;
   }
 }
+
+/* ==========================================================================
+   Drag & Drop Overlay
+   ========================================================================== */
+
+.drag-drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--paper) 85%, transparent);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.drag-drop-modal {
+  border: 2px dashed var(--safe);
+  border-radius: var(--radius-lg);
+  padding: 40px 60px;
+  background: var(--chalk);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.drag-drop-icon {
+  color: var(--safe);
+}
