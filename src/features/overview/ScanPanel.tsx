@@ -6,7 +6,7 @@ import { FolderPickerModal } from './FolderPickerModal'
 import { formatRelativeTime } from '../../lib/format'
 
 export function ScanPanel() {
-  const { data, status, progress, folders, scan } = useScanStore()
+  const { data, status, progress, folders, scan, isDemo } = useScanStore()
   const { scanFolder } = useSettingsStore()
   const [expanded, setExpanded] = useState(false)
   const [showFolderPicker, setShowFolderPicker] = useState(false)
@@ -29,7 +29,10 @@ export function ScanPanel() {
               <FolderSearch size={18} />
             </span>
             <div>
-              <span className="summary-label">Target directory</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="summary-label">Target directory</span>
+                {isDemo && <span className="demo-badge">Demo data</span>}
+              </div>
               <strong>
                 {scanFolder}{' '}
                 <span className="muted">({getFolderLabel(scanFolder)})</span>

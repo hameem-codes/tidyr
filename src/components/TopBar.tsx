@@ -8,6 +8,7 @@ import { formatRelativeTime } from '../lib/format'
 export function TopBar({ onSettings }: { onSettings: () => void }) {
   const { theme, resolvedTheme, setTheme } = useSettingsStore()
   const data = useScanStore(s => s.data)
+  const isDemo = useScanStore(s => s.isDemo)
   const selectedCount = useSelectionStore(s => s.selectedIds.length)
 
   return (
@@ -31,6 +32,11 @@ export function TopBar({ onSettings }: { onSettings: () => void }) {
       </nav>
 
       <div className="top-actions">
+        {isDemo && (
+          <span className="demo-badge" title="Displaying bundled sample scan.json data (offline demo mode)">
+            Demo data
+          </span>
+        )}
         <span className="scanned-pill">
           <span className="status-dot" aria-hidden="true" />
           <span>{data ? `Scanned ${formatRelativeTime(data.scannedAt)}` : 'Ready to scan'}</span>

@@ -204,6 +204,21 @@ code, .micro-label, .summary-caption, .rec-size, dd code, .scanned-pill, .hint, 
   color: #121A18;
 }
 
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--review) 15%, transparent);
+  color: var(--review);
+  border: 1px solid color-mix(in srgb, var(--review) 35%, transparent);
+  text-transform: uppercase;
+}
+
 .top-actions {
   margin-left: auto;
   display: flex;
