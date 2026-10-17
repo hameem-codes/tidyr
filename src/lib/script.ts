@@ -1,12 +1,17 @@
 import type { RecommendationItem } from '../types/scan'
 
 export interface ScriptValidation { ok: boolean; checks: { label: string; ok: boolean }[]; errors: string[] }
+const DANGEROUS_CHARS_REGEX = /[`$;|&<>*?\[\]{}()\\!#\n\r\0]/
+
 function isSafePath(path: string) {
   if (!path || typeof path !== 'string') return false
   if (path === '~' || path === '~/' || path.startsWith('/') || path.startsWith('\\')) return false
   if (!path.startsWith('~/') || path.slice(2).trim().length === 0) return false
-  return !path.includes('..') && !/[`$;|&<>*?\[\]{}]/.test(path)
+  if (path.includes('..')) return false
+  if (DANGEROUS_CHARS_REGEX.test(path)) return false
+  return true
 }
+
 export function quotePath(path: string) {
   if (path.startsWith('~/')) {
     const tail = path.slice(2).replace(/'/g, "'\\''")
@@ -21,18 +26,39 @@ export function quotePath(path: string) {
 export function validatePaths(items: RecommendationItem[]): ScriptValidation {
   const paths = items.flatMap(item => item.paths)
   const insideHome = paths.length > 0 && paths.every(isSafePath)
+  const noTraversal = paths.every(path => !path.includes('..'))
+  const noDanger = paths.every(path => !DANGEROUS_CHARS_REGEX.test(path))
+
+  const seen = new Set<string>()
+  const duplicates = new Set<string>()
+  for (const p of paths) {
+    if (seen.has(p)) duplicates.add(p)
+    seen.add(p)
+  }
+  const unique = duplicates.size === 0
+
   const quoted = paths.every(path => {
     const q = quotePath(path)
     return (q.startsWith("'") || q.startsWith('"$HOME"/')) && q.endsWith("'")
   })
-  const noDanger = paths.every(path => !/[`$;|&<>*?\[\]{}]/.test(path))
-  const unique = new Set(paths).size === paths.length
+
   const errors = [] as string[]
   if (!insideHome) errors.push('Bare ~, ~/, and absolute paths are rejected; paths must be relative to ~/ with a subpath.')
-  if (!quoted) errors.push('Every path must be quoted.')
-  if (!noDanger) errors.push('Shell expansion characters are not allowed.')
-  if (!unique) errors.push('Duplicate paths are not allowed.')
-  return { ok: errors.length === 0, checks: [{label:'All paths inside home folder', ok: insideHome}, {label:'Paths are quoted', ok: quoted}, {label:'No sudo, no wildcards', ok: noDanger}, {label:'No duplicate paths', ok: unique}], errors }
+  if (!noTraversal) errors.push('Path traversal (..) is not allowed.')
+  if (!noDanger) errors.push('Shell metacharacters and wildcards are not allowed.')
+  if (!unique) errors.push(`Duplicate paths detected: ${Array.from(duplicates).join(', ')}.`)
+  if (!quoted) errors.push('Every path must be properly quoted.')
+
+  return {
+    ok: errors.length === 0,
+    checks: [
+      { label: 'All paths inside home folder', ok: insideHome },
+      { label: 'Paths are quoted', ok: quoted },
+      { label: 'No sudo, no wildcards', ok: noDanger && noTraversal },
+      { label: 'No duplicate paths', ok: unique },
+    ],
+    errors,
+  }
 }
 export function buildScript(items: RecommendationItem[]) {
   const validation = validatePaths(items)
