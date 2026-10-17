@@ -1,9 +1,17 @@
 import type { ScanData } from '../types/scan'
 
 export async function loadSampleScan(): Promise<ScanData> {
-  const response = await fetch('/scan.json', { cache: 'no-store' })
+  const meta = import.meta as unknown as { env?: { BASE_URL?: string } }
+  const base = meta.env?.BASE_URL || '/'
+  const url = base.endsWith('/') ? `${base}scan.json` : `${base}/scan.json`
+  const response = await fetch(url, { cache: 'no-store' })
   if (!response.ok) throw new Error(`scan.json returned ${response.status}`)
-  return response.json() as Promise<ScanData>
+  const ct = response.headers.get('content-type') || ''
+  if (ct && !ct.includes('application/json') && !ct.includes('text/plain') && !ct.includes('octet-stream')) {
+    throw new Error('Failed to load scan.json (received non-JSON response)')
+  }
+  const data = await response.json()
+  return data as ScanData
 }
 
 export const loadScan = loadSampleScan
@@ -24,7 +32,11 @@ export function simulateScan(onProgress: (value: number, folders: number) => voi
 export async function checkServerConnected(): Promise<boolean> {
   try {
     const res = await fetch('/api/scan/status', { method: 'GET', cache: 'no-store' })
-    return res.ok
+    if (!res.ok) return false
+    const ct = res.headers.get('content-type') || ''
+    if (!ct.includes('application/json')) return false
+    const data = await res.json()
+    return Boolean(data && typeof data === 'object' && 'status' in data)
   } catch {
     return false
   }
@@ -41,7 +53,10 @@ export async function fetchServerStatus(): Promise<ServerScanStatus | null> {
   try {
     const res = await fetch('/api/scan/status', { method: 'GET', cache: 'no-store' })
     if (!res.ok) return null
-    return res.json() as Promise<ServerScanStatus>
+    const ct = res.headers.get('content-type') || ''
+    if (!ct.includes('application/json')) return null
+    const data = await res.json()
+    return data as ServerScanStatus
   } catch {
     return null
   }
@@ -54,7 +69,9 @@ export async function triggerServerScan(folder?: string): Promise<boolean> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ folder: folder || '~' }),
     })
-    return res.ok
+    if (!res.ok) return false
+    const ct = res.headers.get('content-type') || ''
+    return ct.includes('application/json')
   } catch {
     return false
   }
@@ -64,7 +81,10 @@ export async function fetchServerResult(): Promise<ScanData | null> {
   try {
     const res = await fetch('/api/scan/result', { method: 'GET', cache: 'no-store' })
     if (!res.ok) return null
-    return res.json() as Promise<ScanData>
+    const ct = res.headers.get('content-type') || ''
+    if (!ct.includes('application/json')) return null
+    const data = await res.json()
+    return data as ScanData
   } catch {
     return null
   }
@@ -77,7 +97,9 @@ export async function revealPath(path: string): Promise<boolean> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path }),
     })
-    return res.ok
+    if (!res.ok) return false
+    const ct = res.headers.get('content-type') || ''
+    return ct.includes('application/json')
   } catch {
     return false
   }
