@@ -14,6 +14,7 @@ import { buildScript } from '../lib/script'
 import type { RecommendationItem } from '../types/scan'
 
 type SortMode = 'size-desc' | 'size-asc' | 'label'
+type FilterTab = 'all' | 'safe' | 'review' | 'idle'
 
 function isItemIdleEligible(item: RecommendationItem, idleDays: number): boolean {
   if (item.daysIdle !== undefined) {
@@ -27,6 +28,12 @@ function isItemIdleEligible(item: RecommendationItem, idleDays: number): boolean
     }
   }
   return true
+}
+
+function isIdleProjectItem(item: RecommendationItem): boolean {
+  if (item.daysIdle !== undefined || item.lastModified !== undefined) return true
+  if (item.id.includes('node-modules') || item.id.includes('next-output')) return true
+  return item.paths.some(p => p.includes('node_modules') || p.includes('.next') || p.includes('.turbo'))
 }
 
 export default function Cleanup() {
@@ -43,7 +50,7 @@ export default function Cleanup() {
   const [confirm, setConfirm] = useState(false)
   const [scriptToCopy, setScriptToCopy] = useState('')
   const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<'all' | 'safe' | 'review'>('all')
+  const [filter, setFilter] = useState<FilterTab>('all')
   const [sortMode, setSortMode] = useState<SortMode>('size-desc')
 
   useEffect(() => {
@@ -52,14 +59,19 @@ export default function Cleanup() {
 
   const visible = useMemo(() => {
     if (!data) return []
-    let items = data.items.filter(
-      item =>
-        isItemIdleEligible(item, idleDays) &&
-        (filter === 'all' || item.tier === filter) &&
-        (item.label.toLowerCase().includes(query.toLowerCase()) ||
-          item.paths.some(path => path.toLowerCase().includes(query.toLowerCase())) ||
-          item.note.toLowerCase().includes(query.toLowerCase()))
-    )
+    const q = query.toLowerCase()
+    let items = data.items.filter(item => {
+      if (!isItemIdleEligible(item, idleDays)) return false
+      if (filter === 'idle' && !isIdleProjectItem(item)) return false
+      if (filter === 'safe' && item.tier !== 'safe') return false
+      if (filter === 'review' && item.tier !== 'review') return false
+
+      return (
+        item.label.toLowerCase().includes(q) ||
+        item.paths.some(path => path.toLowerCase().includes(q)) ||
+        item.note.toLowerCase().includes(q)
+      )
+    })
 
     if (sortMode === 'size-desc') {
       items = [...items].sort((a, b) => b.size - a.size)
@@ -117,7 +129,7 @@ export default function Cleanup() {
 
       <div className="cleanup-toolbar">
         <div className="filter-tabs" role="tablist">
-          {(['all', 'safe', 'review'] as const).map(tab => (
+          {(['all', 'safe', 'review', 'idle'] as const).map(tab => (
             <button
               key={tab}
               type="button"
@@ -126,11 +138,19 @@ export default function Cleanup() {
               className={filter === tab ? 'active' : ''}
               onClick={() => setFilter(tab)}
             >
-              {tab === 'all' ? 'All items' : tab === 'safe' ? 'Safe to clear' : 'Needs review'}
+              {tab === 'all'
+                ? 'All items'
+                : tab === 'safe'
+                  ? 'Safe to clear'
+                  : tab === 'review'
+                    ? 'Needs review'
+                    : 'Idle projects'}
               <span>
                 {tab === 'all'
                   ? data.items.filter(i => isItemIdleEligible(i, idleDays)).length
-                  : data.items.filter(i => isItemIdleEligible(i, idleDays) && i.tier === tab).length}
+                  : tab === 'idle'
+                    ? data.items.filter(i => isIdleProjectItem(i) && isItemIdleEligible(i, idleDays)).length
+                    : data.items.filter(i => isItemIdleEligible(i, idleDays) && i.tier === tab).length}
               </span>
             </button>
           ))}
