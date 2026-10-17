@@ -927,6 +927,19 @@ h3 {
   flex-direction: column;
   align-items: flex-start;
   box-sizing: border-box;
+  container-type: size;
+}
+
+@container (max-width: 39.99px) or (max-height: 23.99px) {
+  .tile-label,
+  .tile-size {
+    display: none !important;
+  }
+}
+
+.map-tile.tile-too-small .tile-label,
+.map-tile.tile-too-small .tile-size {
+  display: none !important;
 }
 
 .map-tile.tile-compact {

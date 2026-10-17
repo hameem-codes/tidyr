@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { squarify } from '../../lib/treemap'
 import { formatGB } from '../../lib/format'
 import { SafetyBadge } from '../../components/SafetyBadge'
@@ -68,6 +68,38 @@ interface HoveredTile {
 
 export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
   const [hovered, setHovered] = useState<HoveredTile | null>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const [canvasDimensions, setCanvasDimensions] = useState<{ width: number; height: number }>({
+    width: 1000,
+    height: 400,
+  })
+
+  useEffect(() => {
+    const el = canvasRef.current
+    if (!el) return
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect()
+      if (rect.width > 0 && rect.height > 0) {
+        setCanvasDimensions({ width: rect.width, height: rect.height })
+      }
+    }
+    updateSize()
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+            setCanvasDimensions({
+              width: entry.contentRect.width,
+              height: entry.contentRect.height,
+            })
+          }
+        }
+      })
+      ro.observe(el)
+      return () => ro.disconnect()
+    }
+  }, [])
+
   const theme = useSettingsStore(s => s.resolvedTheme)
   const treemapColors = useSettingsStore(s => s.treemapColors)
 
@@ -83,7 +115,7 @@ export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
 
   return (
     <div className="treemap-shell" onMouseLeave={() => setHovered(null)}>
-      <div className="treemap-canvas" role="region" aria-label="Interactive disk usage treemap">
+      <div ref={canvasRef} className="treemap-canvas" role="region" aria-label="Interactive disk usage treemap">
         {rects.map(rect => {
           const candidate = rect.node.candidate ? itemByCandidate.get(rect.node.candidate) : undefined
           const tone =
@@ -97,6 +129,9 @@ export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
 
           const widthPct = rect.width / 10
           const heightPct = rect.height / 5.2
+          const pixelWidth = (rect.width / 1000) * canvasDimensions.width
+          const pixelHeight = (rect.height / 520) * canvasDimensions.height
+          const isTooSmall = pixelWidth < 40 || pixelHeight < 24
           const isCompactWidth = widthPct < 8.5
           const isCompactHeight = heightPct < 14
           const isTiny = isCompactWidth || isCompactHeight
@@ -107,7 +142,7 @@ export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
             <button
               key={rect.node.id}
               type="button"
-              className={`map-tile ${candidate ? 'candidate' : ''} ${isTiny ? 'tile-compact' : ''} ${isMicro ? 'tile-micro' : ''}`}
+              className={`map-tile ${candidate ? 'candidate' : ''} ${isTiny ? 'tile-compact' : ''} ${isMicro ? 'tile-micro' : ''} ${isTooSmall ? 'tile-too-small' : ''}`}
               style={{
                 left: `${rect.x / 10}%`,
                 top: `${rect.y / 5.2}%`,
@@ -131,8 +166,8 @@ export function Treemap({ nodes, mode, items, onOpen }: TreemapProps) {
               }}
               title={`${rect.node.name} · ${formatGB(rect.node.size)}${candidate ? ` · ${candidate.tier}` : ''}`}
             >
-              <span className="tile-label">{rect.node.name}</span>
-              {!isTiny && <span className="tile-size">{formatGB(rect.node.size)}</span>}
+              {!isTooSmall && <span className="tile-label">{rect.node.name}</span>}
+              {!isTooSmall && !isTiny && <span className="tile-size">{formatGB(rect.node.size)}</span>}
               {candidate && !isTiny && (
                 <span className="tile-badge">
                   <SafetyBadge tier={candidate.tier} />
