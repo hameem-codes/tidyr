@@ -3,10 +3,9 @@ import { ArrowUpRight, CheckCircle2, ChevronDown, FolderSearch, RefreshCw } from
 import { useScanStore } from '../../store/scanStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import { FolderPickerModal } from './FolderPickerModal'
-import { formatRelativeTime } from '../../lib/format'
 
 export function ScanPanel() {
-  const { data, status, progress, folders, scan, isDemo } = useScanStore()
+  const { data, status, progress, folders, scan } = useScanStore()
   const { scanFolder } = useSettingsStore()
   const [expanded, setExpanded] = useState(false)
   const [showFolderPicker, setShowFolderPicker] = useState(false)
@@ -29,10 +28,7 @@ export function ScanPanel() {
               <FolderSearch size={18} />
             </span>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="summary-label">Target directory</span>
-                {isDemo && <span className="demo-badge">Demo data</span>}
-              </div>
+              <span className="summary-label">Target directory</span>
               <strong>
                 {scanFolder}{' '}
                 <span className="muted">({getFolderLabel(scanFolder)})</span>
@@ -55,8 +51,7 @@ export function ScanPanel() {
                   `${progress}% scanning…`
                 ) : (
                   <>
-                    <CheckCircle2 size={14} />{' '}
-                    Scanned {formatRelativeTime(data.scannedAt)}
+                    <CheckCircle2 size={14} /> Scan complete
                   </>
                 )}
               </span>

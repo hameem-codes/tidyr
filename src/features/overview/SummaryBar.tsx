@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useScanStore } from '../../store/scanStore'
 import { useSelectionStore } from '../../store/selectionStore'
-import { formatGB, formatRelativeTime } from '../../lib/format'
+import { formatGB } from '../../lib/format'
 import { ShieldCheck, AlertCircle, HardDrive, Sparkles } from 'lucide-react'
 
 export function SummaryBar() {
@@ -80,7 +80,7 @@ export function SummaryBar() {
           Surveyed footprint
         </span>
         <strong>{formatGB(data.scannedBytes)}</strong>
-        <span className="summary-caption">Last scan: {formatRelativeTime(data.scannedAt)}</span>
+        <span className="summary-caption">Across indexed directories</span>
       </div>
     </section>
   )

@@ -7,7 +7,6 @@ import { SummaryBar } from '../features/overview/SummaryBar'
 import { CategoryBreakdown } from '../features/overview/CategoryBreakdown'
 import { LargestFolders } from '../features/overview/LargestFolders'
 import { Treemap } from '../features/explorer/Treemap'
-import { formatRelativeTime } from '../lib/format'
 import type { FolderNode } from '../types/scan'
 
 export default function Overview() {
@@ -32,7 +31,7 @@ export default function Overview() {
     <div className="page overview-page">
       <div className="page-intro">
         <div>
-          <span className="eyebrow">Local disk survey · {formatRelativeTime(data.scannedAt)}</span>
+          <span className="eyebrow">Local disk survey</span>
           <h1>Make room for the next build.</h1>
           <p className="lede">
             A quiet, local map of what’s taking up space, with safe cleanup candidates clearly distinguished.
