@@ -1759,8 +1759,13 @@ h3 {
 .drawer-scroll {
   overflow-y: auto;
   padding: 16px 20px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
+}
+
+.drawer-scroll > * {
+  flex-shrink: 0;
 }
 
 .script-stat {
@@ -1790,6 +1795,7 @@ h3 {
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--line);
+  min-height: min-content;
 }
 
 .script-preview-bar {
@@ -1821,8 +1827,7 @@ h3 {
   color: #D6E6DC;
   padding: 12px 14px;
   overflow: auto;
-  min-height: 120px;
-  max-height: 160px;
+  max-height: 220px;
   font: 11px/1.65 'IBM Plex Mono', monospace;
   white-space: pre-wrap;
 }
