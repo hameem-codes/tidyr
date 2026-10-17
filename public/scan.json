@@ -22,6 +22,7 @@
       {"id":"node-modules","name":"node_modules","path":"~/node_modules","size":6600000000,"category":"Package caches","candidate":"node-modules"},
       {"id":"documents","name":"Documents","path":"~/Documents","size":14400000000,"category":"Documents","children":[{"id":"docs-work","name":"work archives","path":"~/Documents/work-archives","size":8300000000,"category":"Documents"},{"id":"docs-assets","name":"design assets","path":"~/Documents/design-assets","size":6100000000,"category":"Documents"}]},
       {"id":"cache","name":".cache","path":"~/.cache","size":9000000000,"category":"Package caches","children":[{"id":"cache-pip","name":"pip","path":"~/.cache/pip","size":1200000000,"category":"Package caches","candidate":"browser-cache"},{"id":"cache-uv","name":"uv","path":"~/.cache/uv","size":1000000000,"category":"Package caches","candidate":"browser-cache"},{"id":"cache-puppeteer","name":"puppeteer","path":"~/.cache/puppeteer","size":800000000,"category":"Package caches","candidate":"browser-cache"},{"id":"cache-hf","name":"huggingface","path":"~/.cache/huggingface","size":4500000000,"category":"AI models","candidate":"huggingface"},{"id":"cache-other","name":"other","path":"~/.cache/other","size":1500000000,"category":"Package caches"}]},
+      {"id":"docker","name":".docker","path":"~/.docker","size":8000000000,"category":"Package caches","candidate":"docker-data"},
       {"id":"movies","name":"Movies","path":"~/Movies","size":10000000000,"category":"Documents"}
     ]
   },
@@ -34,7 +35,7 @@
     {"id":"android","label":"Android SDK & emulators","tier":"review","size":17200000000,"paths":["~/Library/Android"],"note":"Keep if you build Android apps locally."},
     {"id":"ollama-models","label":"Ollama models","tier":"review","size":16700000000,"paths":["~/.ollama/models"],"note":"Re-downloads can be slow and expensive."},
     {"id":"node-modules","label":"node_modules (idle projects)","tier":"review","size":6600000000,"paths":["~/node_modules"],"note":"Review project by project before removing."},
-    {"id":"docker-volumes","label":"Docker volumes","tier":"review","size":15500000000,"paths":["~/.docker/volumes"],"note":"May contain local databases or dev environments."},
+    {"id":"docker-data","label":"Docker data","tier":"review","size":8000000000,"paths":["~/.docker"],"note":"Warning: Contains container images, build cache, and configuration. Removing this directory may break local containers or dev environments; prefer 'docker system prune' if Docker is running."},
     {"id":"huggingface","label":"Hugging Face models & datasets","tier":"review","size":4500000000,"paths":["~/.cache/huggingface"],"note":"Cached model weights and dataset checkpoints; re-downloading can be slow."}
   ]
 }
