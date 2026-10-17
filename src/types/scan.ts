@@ -1,7 +1,7 @@
 export type Tier = 'safe' | 'review'
 export type Category = 'Code projects' | 'AI models' | 'Package caches' | 'SDKs' | 'Documents' | 'Home'
 export type ScanStatus = 'idle' | 'loading' | 'ready' | 'error'
-export type CandidateId = 'npm-cache' | 'next-output' | 'gradle-cache' | 'xcode-derived' | 'browser-cache' | 'android' | 'ollama-models' | 'node-modules' | 'docker-volumes' | 'docker-data' | 'huggingface'
+export type CandidateId = string
 
 export interface FolderNode {
   id: string
