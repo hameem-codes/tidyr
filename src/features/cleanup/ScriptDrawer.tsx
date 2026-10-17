@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Clipboard, X, CheckCircle2, Circle, ShieldAlert, Terminal, Sparkles } from 'lucide-react'
 import { buildScript, validatePaths, quotePath } from '../../lib/script'
 import { formatGB } from '../../lib/format'
@@ -18,6 +18,17 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
   const [dryRun, setDryRun] = useState(false)
   const { moveToTrash, setMoveToTrash, platform } = useSettingsStore()
   const showToast = useToastStore(s => s.show)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
 
   const validation = validatePaths(items)
 

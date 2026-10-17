@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Folder, FolderSearch, X, Check, ArrowRight } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useScanStore } from '../../store/scanStore'
@@ -16,6 +16,17 @@ export function FolderPickerModal({ onClose }: { onClose: () => void }) {
   const { scan } = useScanStore()
   const showToast = useToastStore(s => s.show)
   const [customPath, setCustomPath] = useState(scanFolder)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
 
   const handleSelect = async (path: string) => {
     setScanFolder(path)

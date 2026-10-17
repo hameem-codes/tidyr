@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Moon, Sun, Monitor, X, Shield, RefreshCw } from 'lucide-react'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useToastStore } from '../../store/toastStore'
@@ -9,6 +10,17 @@ interface SettingsModalProps {
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const settings = useSettingsStore()
   const showToast = useToastStore(s => s.show)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
 
   const handleResetDefaults = () => {
     settings.setScanFolder('~')

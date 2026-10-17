@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { AlertTriangle, X, Terminal, Check } from 'lucide-react'
 
 interface ConfirmDialogProps {
@@ -6,6 +7,17 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({ onCancel, onConfirm }: ConfirmDialogProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onCancel()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onCancel])
+
   return (
     <div className="modal-backdrop" role="presentation" onClick={onCancel}>
       <div
