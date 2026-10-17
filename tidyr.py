@@ -132,20 +132,21 @@ def get_project_activity(
     project_dir: Path,
     skipped_list: Optional[List[Dict[str, str]]] = None,
     home_path: Optional[Path] = None,
+    now: Optional[float] = None,
 ) -> Tuple[Optional[str], Optional[int]]:
     """
     Real idle-project detection: newest mtime in a project,
-    ignoring node_modules, .next, .turbo, and .git.
+    ignoring node_modules, .next, and .turbo.
     """
-    ignore_set = {"node_modules", ".next", ".turbo", ".git"}
+    ignore_set = {"node_modules", ".next", ".turbo"}
     _, newest_mtime = get_dir_size_and_mtime(
         project_dir, ignore_names=ignore_set, skipped_list=skipped_list, home_path=home_path
     )
     if newest_mtime <= 0:
         return None, None
 
-    now = time.time()
-    days_idle = max(0, int((now - newest_mtime) / 86400))
+    ref_time = time.time() if now is None else now
+    days_idle = max(0, int((ref_time - newest_mtime) / 86400))
     iso_str = datetime.fromtimestamp(newest_mtime, tz=timezone.utc).isoformat()
     return iso_str, days_idle
 
