@@ -76,6 +76,16 @@ def sanitize_id(raw: str) -> str:
     return res or "item"
 
 
+def extract_error_reason(e: Exception) -> str:
+    """Extract a human-readable reason for skipped folders."""
+    if isinstance(e, PermissionError) or "permission denied" in str(e).lower() or "access is denied" in str(e).lower():
+        return "permission denied"
+    if isinstance(e, FileNotFoundError):
+        return "not found"
+    parts = str(e).split(":")
+    return (parts[0] if len(parts) == 1 else parts[-1]).strip() or "unreadable"
+
+
 def get_dir_size_and_mtime(
     dir_path: Path,
     ignore_names: Optional[set] = None,
@@ -110,13 +120,13 @@ def get_dir_size_and_mtime(
                     if skipped_list is not None and home_path is not None:
                         skipped_list.append({
                             "path": to_tilde_path(Path(entry.path), home_path),
-                            "reason": str(e).split(":")[-1].strip() or "permission denied"
+                            "reason": extract_error_reason(e),
                         })
     except (PermissionError, FileNotFoundError, OSError) as e:
         if skipped_list is not None and home_path is not None:
             skipped_list.append({
                 "path": to_tilde_path(dir_path, home_path),
-                "reason": str(e).split(":")[-1].strip() or "permission denied"
+                "reason": extract_error_reason(e),
             })
 
     return total_size, newest_mtime
@@ -277,12 +287,12 @@ class TidyrScanner:
                         except (PermissionError, FileNotFoundError, OSError) as e:
                             self.skipped.append({
                                 "path": to_tilde_path(Path(entry.path), self.home),
-                                "reason": str(e).split(":")[-1].strip() or "permission denied"
+                                "reason": extract_error_reason(e),
                             })
             except (PermissionError, FileNotFoundError, OSError) as e:
                 self.skipped.append({
                     "path": tilde_path,
-                    "reason": str(e).split(":")[-1].strip() or "permission denied"
+                    "reason": extract_error_reason(e),
                 })
         else:
             # Reached max depth, compute size directly
