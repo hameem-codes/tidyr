@@ -12,6 +12,7 @@ import shutil
 import argparse
 import mimetypes
 import threading
+import subprocess
 import http.server
 import urllib.parse
 from pathlib import Path
@@ -493,6 +494,32 @@ class ScanManager:
             return self.result
 
 
+def reveal_in_file_manager(target_path: Path) -> bool:
+    """Reveal path in platform file manager (Finder / Explorer / File Manager)."""
+    try:
+        resolved = target_path.resolve()
+        if sys.platform == "darwin":
+            subprocess.run(["open", "-R", str(resolved)], check=False)
+            return True
+        elif sys.platform == "win32":
+            if resolved.is_dir():
+                subprocess.run(["explorer.exe", str(resolved)], check=False)
+            else:
+                subprocess.run(["explorer.exe", f"/select,{str(resolved)}"], check=False)
+            return True
+        elif sys.platform.startswith("linux"):
+            dest = str(resolved if resolved.is_dir() else resolved.parent)
+            if shutil.which("gio"):
+                subprocess.run(["gio", "open", dest], check=False)
+                return True
+            elif shutil.which("xdg-open"):
+                subprocess.run(["xdg-open", dest], check=False)
+                return True
+    except Exception:
+        pass
+    return False
+
+
 GLOBAL_SCAN_MANAGER = ScanManager()
 
 
@@ -562,6 +589,45 @@ class TidyrHTTPHandler(http.server.BaseHTTPRequestHandler):
             ok, msg = self.scan_manager.start_scan(target_folder=target_folder, max_depth=max_depth)
             status_code = 200 if ok else 409
             self._send_json(status_code, {"status": self.scan_manager.get_status()["status"], "message": msg})
+            return
+
+        if path == "api/reveal":
+            content_length = int(self.headers.get("Content-Length", 0))
+            body_bytes = self.rfile.read(content_length) if content_length > 0 else b"{}"
+            try:
+                body = json.loads(body_bytes.decode("utf-8") or "{}")
+            except Exception:
+                body = {}
+
+            req_path = body.get("path")
+            if not req_path or not isinstance(req_path, str):
+                self._send_json(400, {"error": "Missing or invalid path parameter"})
+                return
+
+            # Check for path traversal or null characters
+            if ".." in req_path or "\0" in req_path:
+                self._send_json(403, {"error": "Path traversal rejected"})
+                return
+
+            home = self.scan_manager.home
+            if req_path == "~":
+                resolved = home
+            elif req_path.startswith("~/"):
+                resolved = (home / req_path[2:]).resolve()
+            else:
+                resolved = Path(req_path).expanduser().resolve()
+
+            # Security: All paths must resolve inside the home folder
+            if resolved != home and home not in resolved.parents:
+                self._send_json(403, {"error": "Path must resolve inside home folder"})
+                return
+
+            if not resolved.exists():
+                self._send_json(404, {"error": "Target path not found"})
+                return
+
+            reveal_in_file_manager(resolved)
+            self._send_json(200, {"success": True, "path": to_tilde_path(resolved, home)})
             return
 
         self.send_error(404, "Not Found")
