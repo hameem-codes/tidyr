@@ -51,13 +51,21 @@ const getDefaultPlatform = (): Platform => {
   return 'darwin'
 }
 
+const getInitialIdleDays = (): number => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('tidyr-idle-days')
+    if (saved && !isNaN(Number(saved))) return Number(saved)
+  }
+  return 90
+}
+
 export const useSettingsStore = create<SettingsState>((set, get) => {
   const initialTheme = getInitialTheme()
   return {
     theme: initialTheme,
     resolvedTheme: resolveTheme(initialTheme),
     scanFolder: '~',
-    idleDays: 30,
+    idleDays: getInitialIdleDays(),
     moveToTrash: false,
     platform: getDefaultPlatform(),
     setTheme: theme => {
@@ -74,7 +82,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => {
       }
     },
   setScanFolder: scanFolder => set({ scanFolder }),
-  setIdleDays: idleDays => set({ idleDays }),
+  setIdleDays: idleDays => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tidyr-idle-days', String(idleDays))
+    }
+    set({ idleDays })
+  },
   setMoveToTrash: moveToTrash => set({ moveToTrash }),
   setPlatform: platform => {
     if (typeof window !== 'undefined') {

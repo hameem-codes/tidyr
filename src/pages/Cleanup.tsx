@@ -3,6 +3,7 @@ import { Search, ArrowUpDown } from 'lucide-react'
 import { useScanStore } from '../store/scanStore'
 import { useSelectionStore } from '../store/selectionStore'
 import { useToastStore } from '../store/toastStore'
+import { useSettingsStore } from '../store/settingsStore'
 import { LoadingState, ErrorState, EmptyState } from '../components/States'
 import { RecommendationList } from '../features/cleanup/RecommendationList'
 import { SelectionBar } from '../features/cleanup/SelectionBar'
@@ -10,11 +11,27 @@ import { ScriptDrawer } from '../features/cleanup/ScriptDrawer'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatGB } from '../lib/format'
 import { buildScript } from '../lib/script'
+import type { RecommendationItem } from '../types/scan'
 
 type SortMode = 'size-desc' | 'size-asc' | 'label'
 
+function isItemIdleEligible(item: RecommendationItem, idleDays: number): boolean {
+  if (item.daysIdle !== undefined) {
+    return item.daysIdle >= idleDays
+  }
+  if (item.lastModified) {
+    const ms = typeof item.lastModified === 'number' ? item.lastModified : new Date(item.lastModified).getTime()
+    if (!isNaN(ms)) {
+      const days = Math.max(0, Math.floor((Date.now() - ms) / 86400000))
+      return days >= idleDays
+    }
+  }
+  return true
+}
+
 export default function Cleanup() {
   const { data, status, error } = useScanStore()
+  const idleDays = useSettingsStore(s => s.idleDays)
   const selectedIds = useSelectionStore(s => s.selectedIds)
   const syncDefaults = useSelectionStore(s => s.syncDefaults)
   const toggle = useSelectionStore(s => s.toggle)
@@ -37,6 +54,7 @@ export default function Cleanup() {
     if (!data) return []
     let items = data.items.filter(
       item =>
+        isItemIdleEligible(item, idleDays) &&
         (filter === 'all' || item.tier === filter) &&
         (item.label.toLowerCase().includes(query.toLowerCase()) ||
           item.paths.some(path => path.toLowerCase().includes(query.toLowerCase())) ||
@@ -58,7 +76,7 @@ export default function Cleanup() {
   if (status === 'error' && !data) return <ErrorState message={error || 'Unknown scan error.'} />
   if (!data) return <EmptyState />
 
-  const selected = data.items.filter(item => selectedIds.includes(item.id))
+  const selected = data.items.filter(item => isItemIdleEligible(item, idleDays) && selectedIds.includes(item.id))
   const total = selected.reduce((n, i) => n + i.size, 0)
 
   const handleCopyScript = async () => {
@@ -111,8 +129,8 @@ export default function Cleanup() {
               {tab === 'all' ? 'All items' : tab === 'safe' ? 'Safe to clear' : 'Needs review'}
               <span>
                 {tab === 'all'
-                  ? data.items.length
-                  : data.items.filter(i => i.tier === tab).length}
+                  ? data.items.filter(i => isItemIdleEligible(i, idleDays)).length
+                  : data.items.filter(i => isItemIdleEligible(i, idleDays) && i.tier === tab).length}
               </span>
             </button>
           ))}

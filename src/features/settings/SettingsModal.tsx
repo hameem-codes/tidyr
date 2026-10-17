@@ -12,7 +12,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
   const handleResetDefaults = () => {
     settings.setScanFolder('~')
-    settings.setIdleDays(30)
+    settings.setIdleDays(90)
     settings.setMoveToTrash(false)
     settings.setTheme('system')
     showToast('Preferences reset to default values')

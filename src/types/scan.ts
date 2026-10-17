@@ -19,6 +19,8 @@ export interface RecommendationItem {
   size: number
   paths: string[]
   note: string
+  lastModified?: string | number
+  daysIdle?: number
 }
 export interface SkippedFolder { path: string; reason: string }
 export interface ScanData {
