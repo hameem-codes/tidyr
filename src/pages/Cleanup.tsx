@@ -85,13 +85,13 @@ export default function Cleanup() {
     }
 
     return items
-  }, [data, filter, query, sortMode])
+  }, [data, filter, query, sortMode, idleDays])
 
   if (status === 'loading' && !data) return <LoadingState />
   if (status === 'error' && !data) return <ErrorState message={error || 'Unknown scan error.'} />
   if (!data) return <EmptyState />
 
-  const selected = data.items.filter(item => isItemIdleEligible(item, idleDays) && selectedIds.includes(item.id))
+  const selected = data.items.filter(item => selectedIds.includes(item.id))
   const total = selected.reduce((n, i) => n + i.size, 0)
 
   const handleCopyScript = async () => {
