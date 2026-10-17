@@ -3,6 +3,7 @@ import { Moon, Settings, Sun, LayoutDashboard, FolderTree, Sparkles } from 'luci
 import { useSettingsStore } from '../store/settingsStore'
 import { useSelectionStore } from '../store/selectionStore'
 import { useScanStore } from '../store/scanStore'
+import { formatRelativeTime } from '../lib/format'
 
 export function TopBar({ onSettings }: { onSettings: () => void }) {
   const { theme, setTheme } = useSettingsStore()
@@ -32,7 +33,7 @@ export function TopBar({ onSettings }: { onSettings: () => void }) {
       <div className="top-actions">
         <span className="scanned-pill">
           <span className="status-dot" aria-hidden="true" />
-          <span>{data ? `Scanned ${data.scannedAt}` : 'Ready to scan'}</span>
+          <span>{data ? `Scanned ${formatRelativeTime(data.scannedAt)}` : 'Ready to scan'}</span>
         </span>
 
         <button

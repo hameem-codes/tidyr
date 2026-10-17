@@ -3,6 +3,7 @@ import { ArrowUpRight, CheckCircle2, ChevronDown, FolderSearch, RefreshCw } from
 import { useScanStore } from '../../store/scanStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import { FolderPickerModal } from './FolderPickerModal'
+import { formatRelativeTime } from '../../lib/format'
 
 export function ScanPanel() {
   const { data, status, progress, folders, scan } = useScanStore()
@@ -52,7 +53,7 @@ export function ScanPanel() {
                 ) : (
                   <>
                     <CheckCircle2 size={14} />{' '}
-                    {data.scannedAt === 'just now' ? 'Scan complete' : 'Ready to survey'}
+                    Scanned {formatRelativeTime(data.scannedAt)}
                   </>
                 )}
               </span>
