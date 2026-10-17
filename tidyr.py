@@ -390,7 +390,7 @@ class TidyrScanner:
             if next_size > 0:
                 cid = f"next-{proj_slug}"
                 next_tilde = f"{proj_tilde}/.next"
-                self.items_map[cid] = {
+                item_data = {
                     "id": cid,
                     "label": f"{proj_name}/.next",
                     "tier": "safe",
@@ -398,6 +398,11 @@ class TidyrScanner:
                     "paths": [next_tilde],
                     "note": "Next.js build cache and output; safe to clean.",
                 }
+                if last_mod is not None:
+                    item_data["lastModified"] = last_mod
+                if days_idle is not None:
+                    item_data["daysIdle"] = days_idle
+                self.items_map[cid] = item_data
 
         # 3. Per-project .turbo
         turbo_path = project_dir / ".turbo"
@@ -406,7 +411,7 @@ class TidyrScanner:
             if turbo_size > 0:
                 cid = f"turbo-{proj_slug}"
                 turbo_tilde = f"{proj_tilde}/.turbo"
-                self.items_map[cid] = {
+                item_data = {
                     "id": cid,
                     "label": f"{proj_name}/.turbo",
                     "tier": "safe",
@@ -414,6 +419,11 @@ class TidyrScanner:
                     "paths": [turbo_tilde],
                     "note": "Turborepo build cache and artifacts; regenerates on build.",
                 }
+                if last_mod is not None:
+                    item_data["lastModified"] = last_mod
+                if days_idle is not None:
+                    item_data["daysIdle"] = days_idle
+                self.items_map[cid] = item_data
 
 
 def is_localhost_origin(origin: Optional[str]) -> bool:

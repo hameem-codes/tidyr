@@ -92,6 +92,10 @@ def test_idle_project_detection(tmp_path: Path):
     assert nm_item["daysIdle"] >= 119
     assert "Inactive project dependencies" in nm_item["note"]
 
+    next_item = next(item for item in data["items"] if item["id"] == "next-idle-project")
+    assert next_item["daysIdle"] >= 119
+    assert next_item["lastModified"] == iso_str
+
 
 def test_skipped_folders_on_permission_error(tmp_path: Path):
     fake_home = tmp_path / "home"
