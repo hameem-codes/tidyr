@@ -458,11 +458,17 @@ class ScanManager:
         scan_path = self.home
         if target_folder and target_folder != "~":
             if target_folder.startswith("~/"):
-                scan_path = self.home / target_folder[2:]
+                p = (self.home / target_folder[2:]).resolve()
+                if p == self.home or self.home in p.parents:
+                    scan_path = p
+                else:
+                    scan_path = self.home
             else:
                 p = Path(target_folder).expanduser().resolve()
                 if p == self.home or self.home in p.parents:
                     scan_path = p
+                else:
+                    scan_path = self.home
 
         self._thread = threading.Thread(
             target=self._run_scan,
