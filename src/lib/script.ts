@@ -3,12 +3,32 @@ import type { RecommendationItem } from '../types/scan'
 export interface ScriptValidation { ok: boolean; checks: { label: string; ok: boolean }[]; errors: string[] }
 const DANGEROUS_CHARS_REGEX = /[`$;|&<>*?\[\]{}()\\!#\n\r\0]/
 
+export const PROTECTED_HOME_FOLDERS = new Set([
+  'Desktop',
+  'Documents',
+  'Downloads',
+  'Library',
+  'Pictures',
+  'Music',
+  'Movies',
+])
+
+export function isProtectedFolder(path: string): boolean {
+  if (!path || typeof path !== 'string' || !path.startsWith('~/')) return false
+  const clean = path.replace(/\/+$/, '').slice(2).trim()
+  return (
+    PROTECTED_HOME_FOLDERS.has(clean) ||
+    Array.from(PROTECTED_HOME_FOLDERS).some(p => p.toLowerCase() === clean.toLowerCase())
+  )
+}
+
 function isSafePath(path: string) {
   if (!path || typeof path !== 'string') return false
   if (path === '~' || path === '~/' || path.startsWith('/') || path.startsWith('\\')) return false
   if (!path.startsWith('~/') || path.slice(2).trim().length === 0) return false
   if (path.includes('..')) return false
   if (DANGEROUS_CHARS_REGEX.test(path)) return false
+  if (isProtectedFolder(path)) return false
   return true
 }
 
@@ -26,6 +46,7 @@ export function quotePath(path: string) {
 export function validatePaths(items: RecommendationItem[]): ScriptValidation {
   const paths = items.flatMap(item => item.paths)
   const insideHome = paths.length > 0 && paths.every(isSafePath)
+  const noProtected = paths.every(path => !isProtectedFolder(path))
   const noTraversal = paths.every(path => !path.includes('..'))
   const noDanger = paths.every(path => !DANGEROUS_CHARS_REGEX.test(path))
 
@@ -43,7 +64,13 @@ export function validatePaths(items: RecommendationItem[]): ScriptValidation {
   })
 
   const errors = [] as string[]
-  if (!insideHome) errors.push('Bare ~, ~/, and absolute paths are rejected; paths must be relative to ~/ with a subpath.')
+  if (!insideHome || !noProtected) {
+    if (!noProtected) {
+      errors.push('Direct targeting of protected user folders (Desktop, Documents, Downloads, Library, Pictures, Music, Movies) is prohibited.')
+    } else {
+      errors.push('Bare ~, ~/, and absolute paths are rejected; paths must be relative to ~/ with a subpath.')
+    }
+  }
   if (!noTraversal) errors.push('Path traversal (..) is not allowed.')
   if (!noDanger) errors.push('Shell metacharacters and wildcards are not allowed.')
   if (!unique) errors.push(`Duplicate paths detected: ${Array.from(duplicates).join(', ')}.`)
@@ -52,7 +79,7 @@ export function validatePaths(items: RecommendationItem[]): ScriptValidation {
   return {
     ok: errors.length === 0,
     checks: [
-      { label: 'All paths inside home folder', ok: insideHome },
+      { label: 'All paths inside home folder', ok: insideHome && noProtected },
       { label: 'Paths are quoted', ok: quoted },
       { label: 'No sudo, no wildcards', ok: noDanger && noTraversal },
       { label: 'No duplicate paths', ok: unique },
