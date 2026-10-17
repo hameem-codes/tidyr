@@ -11,6 +11,7 @@ import time
 import shutil
 import argparse
 import mimetypes
+import threading
 import http.server
 import urllib.parse
 from pathlib import Path
@@ -404,16 +405,132 @@ class TidyrScanner:
                 }
 
 
+def is_localhost_origin(origin: Optional[str]) -> bool:
+    if not origin:
+        return True
+    try:
+        parsed = urllib.parse.urlsplit(origin)
+        return parsed.hostname in ("localhost", "127.0.0.1", "::1")
+    except Exception:
+        return False
+
+
+def send_cors_headers(handler: http.server.BaseHTTPRequestHandler):
+    origin = handler.headers.get("Origin")
+    if is_localhost_origin(origin):
+        handler.send_header("Access-Control-Allow-Origin", origin or "*")
+        handler.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        handler.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+
+class ScanManager:
+    def __init__(self, home: Optional[Path] = None):
+        self.home = (home or Path.home()).resolve()
+        self.lock = threading.Lock()
+        self.status = "idle"
+        self.folder_count = 0
+        self.current_folder = ""
+        self.result: Optional[Dict[str, Any]] = None
+        self.error: Optional[str] = None
+        self._thread: Optional[threading.Thread] = None
+
+    def start_scan(self, target_folder: Optional[str] = None, max_depth: int = 3) -> Tuple[bool, str]:
+        with self.lock:
+            if self.status == "scanning":
+                return False, "Scan already in progress"
+            self.status = "scanning"
+            self.folder_count = 0
+            self.current_folder = ""
+            self.error = None
+            self.result = None
+
+        scan_path = self.home
+        if target_folder and target_folder != "~":
+            if target_folder.startswith("~/"):
+                scan_path = self.home / target_folder[2:]
+            else:
+                p = Path(target_folder).expanduser().resolve()
+                if p == self.home or self.home in p.parents:
+                    scan_path = p
+
+        self._thread = threading.Thread(
+            target=self._run_scan,
+            args=(scan_path, max_depth),
+            daemon=True,
+        )
+        self._thread.start()
+        return True, "Scan started"
+
+    def _run_scan(self, target_path: Path, max_depth: int):
+        def progress_cb(count, current_path):
+            with self.lock:
+                self.folder_count = count
+                self.current_folder = to_tilde_path(current_path, self.home)
+
+        try:
+            scanner = TidyrScanner(home=target_path)
+            res = scanner.scan(max_depth=max_depth, progress_callback=progress_cb)
+            with self.lock:
+                self.result = res
+                self.status = "ready"
+                self.current_folder = ""
+        except Exception as e:
+            with self.lock:
+                self.error = str(e)
+                self.status = "error"
+
+    def get_status(self) -> Dict[str, Any]:
+        with self.lock:
+            return {
+                "status": self.status,
+                "folderCount": self.folder_count,
+                "currentFolder": self.current_folder,
+                "error": self.error,
+            }
+
+    def get_result(self) -> Optional[Dict[str, Any]]:
+        with self.lock:
+            return self.result
+
+
+GLOBAL_SCAN_MANAGER = ScanManager()
+
+
 class TidyrHTTPHandler(http.server.BaseHTTPRequestHandler):
     dist_dir: Path = Path("dist").resolve()
+    scan_manager: ScanManager = GLOBAL_SCAN_MANAGER
+
+    def do_OPTIONS(self):
+        origin = self.headers.get("Origin")
+        if not is_localhost_origin(origin):
+            self.send_error(403, "CORS forbidden")
+            return
+        self.send_response(204)
+        send_cors_headers(self)
+        self.end_headers()
 
     def do_GET(self):
         url_parts = urllib.parse.urlsplit(self.path)
-        rel_path = url_parts.path.lstrip("/")
+        path = url_parts.path.strip("/")
 
+        # API: GET /api/scan/status
+        if path == "api/scan/status":
+            self._send_json(200, self.scan_manager.get_status())
+            return
+
+        # API: GET /api/scan/result
+        if path == "api/scan/result":
+            res = self.scan_manager.get_result()
+            if res is None:
+                self._send_json(404, {"error": "No scan result available"})
+            else:
+                self._send_json(200, res)
+            return
+
+        # Static files from dist_dir
+        rel_path = path
         target_file = (self.dist_dir / rel_path).resolve()
         try:
-            # Check if file exists inside dist_dir
             if (self.dist_dir in target_file.parents or target_file == self.dist_dir) and target_file.is_file():
                 self._serve_file(target_file)
                 return
@@ -427,6 +544,36 @@ class TidyrHTTPHandler(http.server.BaseHTTPRequestHandler):
             return
 
         self.send_error(404, "Not Found")
+
+    def do_POST(self):
+        url_parts = urllib.parse.urlsplit(self.path)
+        path = url_parts.path.strip("/")
+
+        if path == "api/scan":
+            content_length = int(self.headers.get("Content-Length", 0))
+            body_bytes = self.rfile.read(content_length) if content_length > 0 else b"{}"
+            try:
+                body = json.loads(body_bytes.decode("utf-8") or "{}")
+            except Exception:
+                body = {}
+
+            target_folder = body.get("folder")
+            max_depth = int(body.get("maxDepth", 3))
+            ok, msg = self.scan_manager.start_scan(target_folder=target_folder, max_depth=max_depth)
+            status_code = 200 if ok else 409
+            self._send_json(status_code, {"status": self.scan_manager.get_status()["status"], "message": msg})
+            return
+
+        self.send_error(404, "Not Found")
+
+    def _send_json(self, status: int, data: Any):
+        body = json.dumps(data).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        send_cors_headers(self)
+        self.end_headers()
+        self.wfile.write(body)
 
     def _serve_file(self, filepath: Path):
         content_type, _ = mimetypes.guess_type(str(filepath))
@@ -446,6 +593,7 @@ class TidyrHTTPHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(content)))
+            send_cors_headers(self)
             self.end_headers()
             self.wfile.write(content)
         except OSError:
@@ -456,10 +604,12 @@ class TidyrHTTPHandler(http.server.BaseHTTPRequestHandler):
         pass
 
 
-def run_server(host: str = "127.0.0.1", port: int = 3000, dist_dir: Optional[Path] = None):
+def run_server(host: str = "127.0.0.1", port: int = 3000, dist_dir: Optional[Path] = None, home_dir: Optional[Path] = None):
     """Run local HTTP server bound exclusively to 127.0.0.1."""
     resolved_dist = (dist_dir or Path("dist")).resolve()
     TidyrHTTPHandler.dist_dir = resolved_dist
+    if home_dir:
+        TidyrHTTPHandler.scan_manager = ScanManager(home=home_dir)
 
     server = http.server.ThreadingHTTPServer((host, port), TidyrHTTPHandler)
     print(f"Tidyr local server running at http://{host}:{port}/")
