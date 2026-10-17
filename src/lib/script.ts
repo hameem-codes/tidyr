@@ -5,11 +5,24 @@ const homePathPattern = /^(~|~\/[^\0]+|\/home\/[^\0]+)$/
 function isSafePath(path: string) {
   return homePathPattern.test(path) && !path.includes('..') && !/[`$;|&<>*?\[\]{}]/.test(path)
 }
-export function quotePath(path: string) { return `'${path.replace(/'/g, "'\\''")}'` }
+export function quotePath(path: string) {
+  if (path.startsWith('~/')) {
+    const tail = path.slice(2).replace(/'/g, "'\\''")
+    return `"$HOME"/'${tail}'`
+  }
+  if (path === '~') {
+    return '"$HOME"'
+  }
+  return `'${path.replace(/'/g, "'\\''")}'`
+}
+
 export function validatePaths(items: RecommendationItem[]): ScriptValidation {
   const paths = items.flatMap(item => item.paths)
   const insideHome = paths.every(isSafePath)
-  const quoted = paths.every(path => quotePath(path).startsWith("'") && quotePath(path).endsWith("'"))
+  const quoted = paths.every(path => {
+    const q = quotePath(path)
+    return (q.startsWith("'") || q.startsWith('"$HOME"/')) && q.endsWith("'")
+  })
   const noDanger = paths.every(path => !/[`$;|&<>*?\[\]{}]/.test(path))
   const unique = new Set(paths).size === paths.length
   const errors = [] as string[]
