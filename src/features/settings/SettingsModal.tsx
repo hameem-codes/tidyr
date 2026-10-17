@@ -70,7 +70,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           <div className="setting-line">
             <div>
               <strong>Move to Trash instead of immediate deletion</strong>
-              <small>Emits <code>trash-cli</code> commands to keep a reversible fallback.</small>
+              <small>Emits Finder delete on macOS or <code>gio trash</code> on Linux.</small>
             </div>
             <input
               type="checkbox"
@@ -78,6 +78,19 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               onChange={e => settings.setMoveToTrash(e.target.checked)}
             />
           </div>
+
+          <label className="field">
+            <span>Operating system platform</span>
+            <select
+              value={settings.platform}
+              onChange={e => settings.setPlatform(e.target.value as 'darwin' | 'linux' | 'other')}
+            >
+              <option value="darwin">macOS (Finder trash via osascript)</option>
+              <option value="linux">Linux (gio trash)</option>
+              <option value="other">Other Unix (rm fallback)</option>
+            </select>
+            <small>Autodetected from browser. Sets appropriate native trash commands without CLI dependencies.</small>
+          </label>
 
           <div className="theme-choice">
             <div>
