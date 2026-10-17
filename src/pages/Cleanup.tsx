@@ -24,6 +24,7 @@ export default function Cleanup() {
 
   const [drawer, setDrawer] = useState(false)
   const [confirm, setConfirm] = useState(false)
+  const [scriptToCopy, setScriptToCopy] = useState('')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'safe' | 'review'>('all')
   const [sortMode, setSortMode] = useState<SortMode>('size-desc')
@@ -62,7 +63,7 @@ export default function Cleanup() {
 
   const handleCopyScript = async () => {
     try {
-      const script = buildScript(selected)
+      const script = scriptToCopy || buildScript(selected)
       await navigator.clipboard?.writeText(script)
       showToast('Cleanup script copied to clipboard')
     } catch {
@@ -189,7 +190,10 @@ export default function Cleanup() {
         <ScriptDrawer
           items={selected}
           onClose={() => setDrawer(false)}
-          onCopy={() => setConfirm(true)}
+          onCopy={script => {
+            setScriptToCopy(script)
+            setConfirm(true)
+          }}
         />
       )}
 

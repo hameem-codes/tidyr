@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Clipboard, X, CheckCircle2, Circle, ShieldAlert, Terminal, Sparkles } from 'lucide-react'
 import { buildScript, validatePaths } from '../../lib/script'
 import { formatGB } from '../../lib/format'
@@ -9,28 +9,25 @@ import type { RecommendationItem } from '../../types/scan'
 interface ScriptDrawerProps {
   items: RecommendationItem[]
   onClose: () => void
-  onCopy: () => void
+  onCopy: (script: string) => void
 }
 
 export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
   const [read, setRead] = useState(false)
   const [closedApps, setClosedApps] = useState(false)
   const [dryRun, setDryRun] = useState(false)
-  const { moveToTrash, setMoveToTrash } = useSettingsStore()
+  const { moveToTrash, setMoveToTrash, platform } = useSettingsStore()
   const showToast = useToastStore(s => s.show)
 
   const validation = validatePaths(items)
-  let rawScript = ''
-  try {
-    rawScript = buildScript(items)
-    if (dryRun) {
-      rawScript = rawScript.replace(/rm -rf -- /g, 'echo "[dry-run] would remove: " ')
-    } else if (moveToTrash) {
-      rawScript = rawScript.replace(/rm -rf -- /g, 'trash -- ')
+
+  const rawScript = useMemo(() => {
+    try {
+      return buildScript(items, { dryRun, trash: moveToTrash, platform })
+    } catch (err) {
+      return `# Validation failed:\n# ${(err as Error).message || 'Unable to build a safe script for this selection.'}`
     }
-  } catch (err) {
-    rawScript = `# Validation failed:\n# ${(err as Error).message || 'Unable to build a safe script for this selection.'}`
-  }
+  }, [items, dryRun, moveToTrash, platform])
 
   const handleCopyOneLiner = async () => {
     const oneLiner = items
@@ -190,7 +187,7 @@ export function ScriptDrawer({ items, onClose, onCopy }: ScriptDrawerProps) {
           type="button"
           className="button primary full"
           disabled={!isReady}
-          onClick={onCopy}
+          onClick={() => onCopy(rawScript)}
         >
           <Clipboard size={15} />
           {isReady ? 'Copy verified script' : 'Complete checklist to copy'}
