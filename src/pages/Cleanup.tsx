@@ -11,30 +11,13 @@ import { ScriptDrawer } from '../features/cleanup/ScriptDrawer'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatGB } from '../lib/format'
 import { buildScript } from '../lib/script'
-import type { RecommendationItem } from '../types/scan'
-
-type SortMode = 'size-desc' | 'size-asc' | 'label'
-type FilterTab = 'all' | 'safe' | 'review' | 'idle'
-
-function isItemIdleEligible(item: RecommendationItem, idleDays: number): boolean {
-  if (item.daysIdle !== undefined) {
-    return item.daysIdle >= idleDays
-  }
-  if (item.lastModified) {
-    const ms = typeof item.lastModified === 'number' ? item.lastModified : new Date(item.lastModified).getTime()
-    if (!isNaN(ms)) {
-      const days = Math.max(0, Math.floor((Date.now() - ms) / 86400000))
-      return days >= idleDays
-    }
-  }
-  return true
-}
-
-function isIdleProjectItem(item: RecommendationItem): boolean {
-  if (item.daysIdle !== undefined || item.lastModified !== undefined) return true
-  if (item.id.includes('node-modules') || item.id.includes('next-output')) return true
-  return item.paths.some(p => p.includes('node_modules') || p.includes('.next') || p.includes('.turbo'))
-}
+import {
+  filterItems,
+  isIdleProjectItem,
+  isItemIdleEligible,
+  type FilterTab,
+  type SortMode,
+} from '../lib/filter'
 
 export default function Cleanup() {
   const { data, status, error } = useScanStore()
@@ -59,33 +42,8 @@ export default function Cleanup() {
 
   const visible = useMemo(() => {
     if (!data) return []
-    const q = query.toLowerCase()
-    let items = data.items.filter(item => {
-      if (filter === 'idle') {
-        if (!isIdleProjectItem(item) || !isItemIdleEligible(item, idleDays)) return false
-      } else if (filter === 'safe') {
-        if (item.tier !== 'safe') return false
-      } else if (filter === 'review') {
-        if (item.tier !== 'review') return false
-      }
-
-      return (
-        item.label.toLowerCase().includes(q) ||
-        item.paths.some(path => path.toLowerCase().includes(q)) ||
-        item.note.toLowerCase().includes(q)
-      )
-    })
-
-    if (sortMode === 'size-desc') {
-      items = [...items].sort((a, b) => b.size - a.size)
-    } else if (sortMode === 'size-asc') {
-      items = [...items].sort((a, b) => a.size - b.size)
-    } else if (sortMode === 'label') {
-      items = [...items].sort((a, b) => a.label.localeCompare(b.label))
-    }
-
-    return items
-  }, [data, filter, query, sortMode, idleDays])
+    return filterItems(data.items, { filter, idleDays, query, sortMode })
+  }, [data, filter, idleDays, query, sortMode])
 
   if (status === 'loading' && !data) return <LoadingState />
   if (status === 'error' && !data) return <ErrorState message={error || 'Unknown scan error.'} />
