@@ -69,3 +69,31 @@ Tidyr is completely local-first and works offline:
 - **Demo Data Badge**: When viewing fallback or demo data, a visible `Demo data` badge appears in the top navigation bar and scan panel.
 - **Drag & Drop**: You can drag and drop any exported `scan.json` file anywhere onto the application window to load and inspect it immediately without running a server.
 - **Development Server**: Run `npm run dev` to launch the Vite development server with hot module replacement at `http://localhost:3000/`.
+
+---
+
+## Safety Model
+
+Tidyr is built on uncompromising safety guarantees:
+
+### 1. Read-Only Scanner
+- The scanner only reads directory entries, metadata, and file sizes.
+- Neither the web UI nor the local Python bridge ever modifies, overwrites, renames, or deletes files on disk.
+
+### 2. Script-Only Execution Model
+- Cleanups are generated as clean, transparent shell scripts for manual human verification before execution.
+- Paths are expanded using `"$HOME"/'<path>'` so shell tilde expansion is safe and spaces/quotes in file names are securely escaped.
+- Validation strictly rejects:
+  - Bare `~`, `~/`, and absolute paths outside `~/`
+  - Directory traversal (`..`) and null bytes
+  - Dangerous shell metacharacters and wildcards (`;`, `&`, `|`, `$`, `` ` ``, `*`, `?`, etc.)
+  - Direct targeting of protected OS folders (`Desktop`, `Documents`, `Downloads`, `Library`, `Pictures`, `Music`, `Movies`)
+  - Commands or paths involving `sudo`
+  - Duplicate path entries
+- Supports dry-run inspection previews and native OS Trash movement (`osascript` Finder delete on macOS, `gio trash` on Linux) without third-party CLI dependencies.
+
+### 3. Zero Telemetry & Privacy
+- **100% Local-First**: Operates completely offline without cloud dependencies.
+- **Zero Telemetry**: No trackers, cookies, analytics, or external network requests.
+- **Localhost Only**: The bridge binds exclusively to `127.0.0.1` and denies all non-localhost CORS requests.
+- **Path Containment**: The `/api/reveal` endpoint strictly rejects any path that does not resolve inside your home directory.
