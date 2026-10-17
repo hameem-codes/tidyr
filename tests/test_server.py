@@ -203,10 +203,10 @@ def test_scan_traversal_path_falls_back_to_home(test_server):
     status, res = post_json(f"{base_url}/api/scan", {"folder": "~/../outside"})
     assert status == 200
 
-    assert scan_mgr._thread is not None
-    assert scan_mgr._thread._args[0] == fake_home
+    assert scan_mgr.scan_path == fake_home
 
-    scan_mgr._thread.join(timeout=5)
+    if scan_mgr._thread:
+        scan_mgr._thread.join(timeout=5)
 
     status, scan_data = get_json(f"{base_url}/api/scan/result")
     assert status == 200

@@ -457,6 +457,7 @@ class ScanManager:
         self.result: Optional[Dict[str, Any]] = None
         self.error: Optional[str] = None
         self._thread: Optional[threading.Thread] = None
+        self.scan_path: Path = self.home
 
     def start_scan(self, target_folder: Optional[str] = None, max_depth: int = 3) -> Tuple[bool, str]:
         with self.lock:
@@ -482,6 +483,8 @@ class ScanManager:
                     scan_path = p
                 else:
                     scan_path = self.home
+
+        self.scan_path = scan_path
 
         self._thread = threading.Thread(
             target=self._run_scan,
