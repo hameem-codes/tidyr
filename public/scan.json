@@ -11,9 +11,9 @@
   "tree": {
     "id":"home","name":"~","path":"~","size":135000000000,"category":"Home","children":[
       {"id":"desktop","name":"Desktop","path":"~/Desktop","size":41000000000,"category":"Code projects","children":[
-        {"id":"atlas","name":"atlas","path":"~/Desktop/atlas","size":16600000000,"category":"Code projects","children":[{"id":"atlas-src","name":"src","path":"~/Desktop/atlas/src","size":4100000000,"category":"Code projects"},{"id":"atlas-next","name":".next","path":"~/Desktop/atlas/.next","size":12300000000,"category":"Code projects","candidate":"next-output"}]},
+        {"id":"atlas","name":"atlas","path":"~/Desktop/atlas","size":16600000000,"category":"Code projects","children":[{"id":"atlas-src","name":"src","path":"~/Desktop/atlas/src","size":4300000000,"category":"Code projects"},{"id":"atlas-next","name":".next","path":"~/Desktop/atlas/.next","size":12300000000,"category":"Code projects","candidate":"next-output"}]},
         {"id":"kite","name":"kite","path":"~/Desktop/kite","size":12300000000,"category":"Code projects","children":[{"id":"kite-next","name":".next","path":"~/Desktop/kite/.next","size":9600000000,"category":"Code projects","candidate":"next-output"},{"id":"kite-src","name":"src","path":"~/Desktop/kite/src","size":2700000000,"category":"Code projects"}]},
-        {"id":"desktop-docs","name":"notes & media","path":"~/Desktop/notes-and-media","size":7100000000,"category":"Documents"}
+        {"id":"desktop-docs","name":"notes & media","path":"~/Desktop/notes-and-media","size":12100000000,"category":"Documents"}
       ]},
       {"id":"ollama","name":".ollama","path":"~/.ollama","size":17000000000,"category":"AI models","children":[{"id":"ollama-models","name":"models","path":"~/.ollama/models","size":16700000000,"category":"AI models","candidate":"ollama-models"},{"id":"ollama-meta","name":"metadata","path":"~/.ollama/metadata","size":300000000,"category":"AI models"}]},
       {"id":"npm","name":".npm","path":"~/.npm","size":13400000000,"category":"Package caches","candidate":"npm-cache"},
@@ -23,16 +23,16 @@
       {"id":"documents","name":"Documents","path":"~/Documents","size":14400000000,"category":"Documents","children":[{"id":"docs-work","name":"work archives","path":"~/Documents/work-archives","size":8300000000,"category":"Documents"},{"id":"docs-assets","name":"design assets","path":"~/Documents/design-assets","size":6100000000,"category":"Documents"}]},
       {"id":"cache","name":".cache","path":"~/.cache","size":9000000000,"category":"Package caches","children":[{"id":"cache-pip","name":"pip","path":"~/.cache/pip","size":1200000000,"category":"Package caches","candidate":"browser-cache"},{"id":"cache-uv","name":"uv","path":"~/.cache/uv","size":1000000000,"category":"Package caches","candidate":"browser-cache"},{"id":"cache-puppeteer","name":"puppeteer","path":"~/.cache/puppeteer","size":800000000,"category":"Package caches","candidate":"browser-cache"},{"id":"cache-hf","name":"huggingface","path":"~/.cache/huggingface","size":4500000000,"category":"AI models","candidate":"huggingface"},{"id":"cache-other","name":"other","path":"~/.cache/other","size":1500000000,"category":"Package caches"}]},
       {"id":"docker","name":".docker","path":"~/.docker","size":8000000000,"category":"Package caches","candidate":"docker-data"},
-      {"id":"movies","name":"Movies","path":"~/Movies","size":10000000000,"category":"Documents"}
+      {"id":"movies","name":"Movies","path":"~/Movies","size":2000000000,"category":"Documents"}
     ]
   },
   "items": [
     {"id":"npm-cache","label":"npm cache","tier":"safe","size":13400000000,"paths":["~/.npm"],"note":"Regenerates on next install."},
-    {"id":"next-output","label":"Next.js & Turbo output","tier":"safe","size":12300000000,"paths":["~/Desktop/atlas/.next","~/Desktop/kite/.next"],"note":"Build artifacts, not source files."},
+    {"id":"next-output","label":"Next.js & Turbo output","tier":"safe","size":21900000000,"paths":["~/Desktop/atlas/.next","~/Desktop/kite/.next"],"note":"Build artifacts, not source files."},
     {"id":"gradle-cache","label":"Gradle caches","tier":"safe","size":6600000000,"paths":["~/.gradle/caches"],"note":"Dependencies are fetched again when needed."},
     {"id":"xcode-derived","label":"Xcode DerivedData","tier":"safe","size":6400000000,"paths":["~/Library/Developer/Xcode/DerivedData"],"note":"Build intermediates only; projects stay intact."},
     {"id":"browser-cache","label":"Pip, uv & Puppeteer caches","tier":"safe","size":3000000000,"paths":["~/.cache/pip","~/.cache/uv","~/.cache/puppeteer"],"note":"Safe package and browser automation caches; regenerate on demand."},
-    {"id":"android","label":"Android SDK & emulators","tier":"review","size":17200000000,"paths":["~/Library/Android"],"note":"Keep if you build Android apps locally."},
+    {"id":"android","label":"Android SDK & emulators","tier":"review","size":9900000000,"paths":["~/Library/Android"],"note":"Keep if you build Android apps locally."},
     {"id":"ollama-models","label":"Ollama models","tier":"review","size":16700000000,"paths":["~/.ollama/models"],"note":"Re-downloads can be slow and expensive."},
     {"id":"node-modules","label":"node_modules (idle projects)","tier":"review","size":6600000000,"paths":["~/node_modules"],"note":"Review project by project before removing."},
     {"id":"docker-data","label":"Docker data","tier":"review","size":8000000000,"paths":["~/.docker"],"note":"Warning: Contains container images, build cache, and configuration. Removing this directory may break local containers or dev environments; prefer 'docker system prune' if Docker is running."},
