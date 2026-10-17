@@ -2153,10 +2153,12 @@ h3 {
 }
 
 .settings-body {
-  padding: 22px 26px;
+  padding: 22px 26px 28px;
   overflow-y: auto;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 22px;
+  min-height: 0;
 }
 
 .settings-section {
@@ -2203,14 +2205,11 @@ h3 {
   font-weight: 400;
 }
 
-.setting-line, .theme-choice {
+.setting-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-}
-
-.setting-line {
   padding-top: 4px;
   cursor: pointer;
 }
@@ -2236,39 +2235,62 @@ h3 {
   cursor: pointer;
 }
 
-.theme-choice > div {
+.theme-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.theme-choice > div:first-child {
   display: grid;
   gap: 3px;
 }
 
-.theme-buttons {
-  display: flex;
-  gap: 6px;
-}
-
-.theme-buttons button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 7px 11px;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.15s ease;
-}
-
-.theme-buttons button:hover {
-  color: var(--ink);
-}
-
-.theme-buttons button.selected {
-  color: var(--ink);
-  border-color: var(--ink);
+.theme-segmented {
+  display: flex !important;
+  flex-direction: row;
+  width: 100%;
+  gap: 2px;
+  padding: 3px;
   background: var(--chalk);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
+}
+
+.theme-segmented button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.theme-segmented button:hover {
+  color: var(--ink);
+}
+
+.theme-segmented button.active {
+  background: #17211F;
+  color: #FFFFFF;
+  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+}
+
+:root[data-theme='dark'] .theme-segmented button.active {
+  background: #EEF1F0;
+  color: #101716;
 }
 
 .about-info-grid {
@@ -2321,6 +2343,7 @@ h3 {
   display: flex;
   justify-content: flex-end;
   background: var(--paper);
+  flex-shrink: 0;
 }
 
 /* ==========================================================================

@@ -122,7 +122,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 <span>Interface theme</span>
                 <small className="muted">Paper light mode or deep forest dark mode</small>
               </div>
-              <div className="segmented" role="radiogroup" aria-label="Interface theme">
+              <div className="segmented theme-segmented" role="radiogroup" aria-label="Interface theme">
                 <button
                   type="button"
                   role="radio"
