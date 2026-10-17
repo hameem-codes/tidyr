@@ -1,7 +1,9 @@
+import http.client
 import json
 import socket
 import threading
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -189,3 +191,73 @@ def test_server_scan_flow_and_result(test_server):
     status, scan_data = get_json(f"{base_url}/api/scan/result")
     assert status == 200
     validate_scan_schema(scan_data)
+
+
+def test_scan_traversal_path_falls_back_to_home(test_server):
+    base_url, fake_home, scan_mgr = test_server
+
+    with scan_mgr.lock:
+        scan_mgr.status = "idle"
+        scan_mgr.result = None
+
+    status, res = post_json(f"{base_url}/api/scan", {"folder": "~/../outside"})
+    assert status == 200
+
+    assert scan_mgr._thread is not None
+    assert scan_mgr._thread._args[0] == fake_home
+
+    scan_mgr._thread.join(timeout=5)
+
+    status, scan_data = get_json(f"{base_url}/api/scan/result")
+    assert status == 200
+    validate_scan_schema(scan_data)
+    assert scan_data["tree"]["path"] == "~"
+
+
+def test_post_rejects_text_plain_content_type(test_server):
+    base_url, _, _ = test_server
+
+    req = urllib.request.Request(
+        f"{base_url}/api/scan",
+        data=b"hello text",
+        headers={"Content-Type": "text/plain", "Origin": "http://localhost:3000"},
+        method="POST"
+    )
+    with pytest.raises(urllib.error.HTTPError) as exc_info:
+        urllib.request.urlopen(req)
+    assert exc_info.value.code == 403
+
+
+def test_post_rejects_evil_origin(test_server):
+    base_url, _, _ = test_server
+
+    req = urllib.request.Request(
+        f"{base_url}/api/scan",
+        data=json.dumps({"folder": "~"}).encode("utf-8"),
+        headers={"Content-Type": "application/json", "Origin": "https://evil.example"},
+        method="POST"
+    )
+    with pytest.raises(urllib.error.HTTPError) as exc_info:
+        urllib.request.urlopen(req)
+    assert exc_info.value.code == 403
+
+
+def test_post_rejects_bad_host_header(test_server):
+    base_url, _, _ = test_server
+    port = urllib.parse.urlsplit(base_url).port
+
+    conn = http.client.HTTPConnection("127.0.0.1", port)
+    conn.request(
+        "POST",
+        "/api/scan",
+        body=json.dumps({"folder": "~"}).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Origin": "http://localhost:3000",
+            "Host": "evil.example:8080"
+        }
+    )
+    resp = conn.getresponse()
+    assert resp.status == 403
+    conn.close()
+
