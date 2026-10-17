@@ -83,10 +83,40 @@ export function validatePaths(items: RecommendationItem[]): ScriptValidation {
     errors,
   }
 }
-export function buildScript(items: RecommendationItem[]) {
+export type Platform = 'darwin' | 'linux' | 'other'
+
+export interface BuildScriptOptions {
+  dryRun?: boolean
+  trash?: boolean
+  platform?: Platform
+}
+
+export function buildScript(items: RecommendationItem[], options: BuildScriptOptions = {}) {
   const validation = validatePaths(items)
   if (!validation.ok) throw new Error(validation.errors.join(' '))
+  const { dryRun = false, trash = false, platform = 'darwin' } = options
+
   const lines = ['#!/bin/sh', 'set -eu', '', '# Tidyr cleanup script — review before running', '']
-  items.forEach(item => { lines.push(`# ${item.label} (${(item.size / 1_000_000_000).toFixed(1)} GB)`); item.paths.forEach(path => lines.push(`rm -rf -- ${quotePath(path)}`)); lines.push('') })
+  items.forEach(item => {
+    lines.push(`# ${item.label} (${(item.size / 1_000_000_000).toFixed(1)} GB)`)
+    item.paths.forEach(path => {
+      const quoted = quotePath(path)
+      if (dryRun) {
+        lines.push(`echo "[dry-run] would remove: " ${quoted}`)
+      } else if (trash) {
+        if (platform === 'darwin') {
+          const tail = path.startsWith('~/') ? path.slice(2).replace(/'/g, "'\\''") : path.replace(/'/g, "'\\''")
+          lines.push(`osascript -e 'tell application "Finder" to delete POSIX file "'"$HOME"/'${tail}"'"'`)
+        } else if (platform === 'linux') {
+          lines.push(`gio trash ${quoted}`)
+        } else {
+          lines.push(`rm -rf -- ${quoted}`)
+        }
+      } else {
+        lines.push(`rm -rf -- ${quoted}`)
+      }
+    })
+    lines.push('')
+  })
   return lines.join('\n').trim() + '\n'
 }
