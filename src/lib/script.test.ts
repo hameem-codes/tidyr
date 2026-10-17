@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
+// @ts-ignore
+import { spawnSync } from 'child_process'
+// @ts-ignore
+import fs from 'fs'
 import { quotePath, validatePaths, buildScript } from './script'
+
+declare const process: any
 
 describe('script.ts - P5.1 Tilde conversion and quoting', () => {
   it('expands ~/path to "$HOME"/\'path\'', () => {
@@ -137,6 +143,46 @@ describe('script.ts - P5.2 Rejected paths and buildScript parity', () => {
       const previewScript = buildScript(sampleItems, { dryRun: false, trash: true, platform: 'darwin' })
       const copiedScript = buildScript(sampleItems, { dryRun: false, trash: true, platform: 'darwin' })
       expect(previewScript).toBe(copiedScript)
+    })
+  })
+
+  describe('F5 sh -n syntax validation on every script variant', () => {
+    const sampleItems = [
+      makeItem(['~/Desktop/atlas/.next', '~/Desktop/atlas/node_modules']),
+    ]
+
+    function findSh(): string {
+      if (process.platform !== 'win32') return 'sh'
+      const candidates = [
+        'C:\\Program Files\\Git\\bin\\sh.exe',
+        'C:\\Program Files\\Git\\usr\\bin\\sh.exe',
+        'C:\\Program Files (x86)\\Git\\bin\\sh.exe',
+      ]
+      for (const p of candidates) {
+        if (fs.existsSync(p)) return p
+      }
+      return 'sh'
+    }
+
+    const variants: [string, Parameters<typeof buildScript>[1]][] = [
+      ['rm -rf (default)', { dryRun: false, trash: false }],
+      ['dry-run preview', { dryRun: true }],
+      ['darwin macOS trash', { trash: true, platform: 'darwin' }],
+      ['linux gio trash', { trash: true, platform: 'linux' }],
+    ]
+
+    variants.forEach(([name, options]) => {
+      it(`passes sh -n syntax check for ${name}`, () => {
+        const script = buildScript(sampleItems, options)
+        const shBin = findSh()
+        const result = spawnSync(shBin, ['-n'], {
+          input: script,
+          encoding: 'utf-8',
+        })
+        expect(result.error).toBeUndefined()
+        expect(result.status).toBe(0)
+        expect(result.stderr).toBe('')
+      })
     })
   })
 })
