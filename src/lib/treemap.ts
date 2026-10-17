@@ -11,18 +11,27 @@ function worst(row: Box[], side: number) {
   const min = Math.min(...areas)
   return Math.max((side * side * max) / (sum * sum), (sum * sum) / (side * side * min))
 }
-function layoutRow(row: Box[], x: number, y: number, width: number, height: number, total: number): TreemapRect[] {
+function layoutRow(row: Box[], x: number, y: number, width: number, height: number): TreemapRect[] {
   const result: TreemapRect[] = []
-  const horizontal = width >= height
   const rowArea = row.reduce((sum, item) => sum + item.area, 0)
-  if (horizontal) {
-    const rowHeight = rowArea / width
-    let cursor = x
-    row.forEach(item => { const itemWidth = item.area / rowHeight; result.push({ node: item.node, x: cursor, y, width: itemWidth, height: rowHeight }); cursor += itemWidth })
+  if (width >= height) {
+    // When w >= h, place the row as a column on the left and stack items vertically
+    const rowWidth = height > 0 ? rowArea / height : 0
+    let cursorY = y
+    row.forEach(item => {
+      const itemHeight = rowWidth > 0 ? item.area / rowWidth : 0
+      result.push({ node: item.node, x, y: cursorY, width: rowWidth, height: itemHeight })
+      cursorY += itemHeight
+    })
   } else {
-    const rowWidth = rowArea / height
-    let cursor = y
-    row.forEach(item => { const itemHeight = item.area / rowWidth; result.push({ node: item.node, x, y: cursor, width: rowWidth, height: itemHeight }); cursor += itemHeight })
+    // When w < h, place the row on top and stack items horizontally
+    const rowHeight = width > 0 ? rowArea / width : 0
+    let cursorX = x
+    row.forEach(item => {
+      const itemWidth = rowHeight > 0 ? item.area / rowHeight : 0
+      result.push({ node: item.node, x: cursorX, y, width: itemWidth, height: rowHeight })
+      cursorX += itemWidth
+    })
   }
   return result
 }
@@ -30,7 +39,7 @@ export function squarify(nodes: FolderNode[], width: number, height: number): Tr
   const positive = nodes.filter(n => n.size > 0)
   if (!positive.length || width <= 0 || height <= 0) return []
   const total = positive.reduce((sum, n) => sum + n.size, 0)
-  const scale = width * height / total
+  const scale = (width * height) / total
   const boxes = positive.map(node => ({ node, area: node.size * scale })).sort((a, b) => b.area - a.area)
   const result: TreemapRect[] = []
   let remaining = [...boxes]
@@ -38,10 +47,20 @@ export function squarify(nodes: FolderNode[], width: number, height: number): Tr
   while (remaining.length) {
     const row: Box[] = []
     const side = Math.min(w, h)
-    while (remaining.length && (!row.length || worst([...row, remaining[0]], side) <= worst(row, side))) row.push(remaining.shift()!)
-    result.push(...layoutRow(row, x, y, w, h, total))
+    while (remaining.length && (!row.length || worst([...row, remaining[0]], side) <= worst(row, side))) {
+      row.push(remaining.shift()!)
+    }
+    result.push(...layoutRow(row, x, y, w, h))
     const rowArea = row.reduce((sum, item) => sum + item.area, 0)
-    if (w >= h) { const rowHeight = rowArea / w; y += rowHeight; h -= rowHeight } else { const rowWidth = rowArea / h; x += rowWidth; w -= rowWidth }
+    if (w >= h) {
+      const rowWidth = h > 0 ? rowArea / h : 0
+      x += rowWidth
+      w -= rowWidth
+    } else {
+      const rowHeight = w > 0 ? rowArea / w : 0
+      y += rowHeight
+      h -= rowHeight
+    }
   }
   return result
 }
